@@ -72,14 +72,16 @@ export default async function DashboardPage() {
     (completionItems.filter(Boolean).length / completionItems.length) * 100
   )
 
-  const transportIcon = {
+  const transportOptions = {
     avion: Plane,
     train: Train,
     voiture: Car,
     autre: MapPin,
-  }[profile?.arrival_transport || "autre"] || MapPin
+  } as const
 
-  const TransportIcon = transportIcon
+  type TransportType = keyof typeof transportOptions
+  const transportKey = (profile?.arrival_transport || "autre") as TransportType
+  const TransportIcon = transportOptions[transportKey] || MapPin
 
   // Formatage des dates
   const formatDate = (dateString: string) => {
