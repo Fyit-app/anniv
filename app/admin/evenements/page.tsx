@@ -240,7 +240,7 @@ export default async function AdminEvenementsPage({
                         <div className="mt-4 pt-4 border-t border-dashed">
                           <p className="text-xs text-muted-foreground mb-2">Inscrits :</p>
                           <div className="flex flex-wrap gap-2">
-                            {event.registrants.map((r, i) => (
+                            {event.registrants.map((r: { name: string; count: number }, i: number) => (
                               <span
                                 key={i}
                                 className="px-2 py-1 rounded-md text-xs bg-oasis-50 text-oasis-700"
