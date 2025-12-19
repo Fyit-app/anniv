@@ -89,7 +89,85 @@ export async function saveStayInfo(formData: FormData) {
   return { success: true }
 }
 
-// Sauvegarder l'étape 2 (participants)
+// Sauvegarder l'étape 2 (informations utilisateur + participants)
+export async function saveParticipants(data: {
+  prenom: string
+  nom: string
+  accompagnants: { first_name: string; is_minor: boolean }[]
+}) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    return { error: "Non authentifié" }
+  }
+
+  // Validation
+  if (!data.prenom.trim()) {
+    return { error: "Le prénom est obligatoire" }
+  }
+  if (!data.nom.trim()) {
+    return { error: "Le nom de famille est obligatoire" }
+  }
+
+  for (const member of data.accompagnants) {
+    if (!member.first_name.trim()) {
+      return { error: "Tous les prénoms des accompagnants sont obligatoires" }
+    }
+  }
+
+  // Mettre à jour le profil avec prénom et nom
+  const { error: profileError } = await supabase
+    .from("profiles")
+    .update({
+      prenom: data.prenom.trim(),
+      nom: data.nom.trim(),
+    })
+    .eq("id", user.id)
+
+  if (profileError) {
+    console.error("Erreur lors de la sauvegarde du profil:", profileError)
+    return { error: "Erreur lors de la sauvegarde" }
+  }
+
+  // Supprimer les anciens membres de la famille
+  await supabase
+    .from("family_members")
+    .delete()
+    .eq("profile_id", user.id)
+
+  // Créer la liste complète des participants (utilisateur + accompagnants)
+  const allMembers = [
+    // L'utilisateur principal (toujours majeur)
+    { first_name: data.prenom.trim(), is_minor: false },
+    // Les accompagnants
+    ...data.accompagnants.map(m => ({
+      first_name: m.first_name.trim(),
+      is_minor: m.is_minor,
+    }))
+  ]
+
+  // Insérer tous les membres
+  const { error } = await supabase
+    .from("family_members")
+    .insert(
+      allMembers.map((m) => ({
+        profile_id: user.id,
+        first_name: m.first_name,
+        is_minor: m.is_minor,
+      }))
+    )
+
+  if (error) {
+    console.error("Erreur lors de la sauvegarde:", error)
+    return { error: "Erreur lors de la sauvegarde des participants" }
+  }
+
+  revalidatePath("/onboarding")
+  return { success: true }
+}
+
+// Ancienne fonction conservée pour compatibilité
 export async function saveFamilyMembers(members: { first_name: string; is_minor: boolean }[]) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()

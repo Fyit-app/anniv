@@ -26,14 +26,13 @@ import {
   Baby,
   User
 } from "lucide-react"
-import { saveStayInfo, saveFamilyMembers, completeOnboarding } from "./actions"
+import { saveStayInfo, saveParticipants, completeOnboarding } from "./actions"
 import type { Profile, FamilyMember } from "@/lib/types"
 import { cn } from "@/lib/utils"
 
 interface OnboardingWizardProps {
   initialProfile: Profile | null
   initialFamilyMembers: FamilyMember[]
-  userPrenom: string
 }
 
 type Step = 1 | 2 | 3
@@ -53,8 +52,7 @@ const TRANSPORT_OPTIONS = [
 
 export function OnboardingWizard({ 
   initialProfile, 
-  initialFamilyMembers,
-  userPrenom 
+  initialFamilyMembers
 }: OnboardingWizardProps) {
   const [step, setStep] = useState<Step>(1)
   const [isPending, startTransition] = useTransition()
@@ -67,21 +65,21 @@ export function OnboardingWizard({
   const [airport, setAirport] = useState(initialProfile?.arrival_airport || "")
   const [residence, setResidence] = useState(initialProfile?.residence_location || "")
 
-  // État étape 2 - membres de la famille
-  const [familyMembers, setFamilyMembers] = useState<LocalFamilyMember[]>(() => {
-    if (initialFamilyMembers.length > 0) {
-      return initialFamilyMembers.map(m => ({
+  // État étape 2 - informations utilisateur
+  const [prenom, setPrenom] = useState(initialProfile?.prenom || "")
+  const [nom, setNom] = useState(initialProfile?.nom || "")
+  
+  // État étape 2 - accompagnants (hors utilisateur principal)
+  const [accompagnants, setAccompagnants] = useState<LocalFamilyMember[]>(() => {
+    // Si on a des membres existants, on exclut le premier (qui est l'utilisateur)
+    if (initialFamilyMembers.length > 1) {
+      return initialFamilyMembers.slice(1).map(m => ({
         id: m.id,
         first_name: m.first_name,
         is_minor: m.is_minor
       }))
     }
-    // Par défaut, ajouter l'utilisateur principal
-    return [{
-      id: crypto.randomUUID(),
-      first_name: userPrenom,
-      is_minor: false
-    }]
+    return []
   })
 
   const progressValue = (step / 3) * 100
@@ -122,25 +120,31 @@ export function OnboardingWizard({
       })
     } else if (step === 2) {
       // Validation étape 2
-      if (familyMembers.length === 0) {
-        setError("Veuillez ajouter au moins un participant")
+      if (!prenom.trim()) {
+        setError("Veuillez indiquer votre prénom")
         return
       }
-      for (const member of familyMembers) {
+      if (!nom.trim()) {
+        setError("Veuillez indiquer votre nom de famille")
+        return
+      }
+      for (const member of accompagnants) {
         if (!member.first_name.trim()) {
-          setError("Tous les prénoms sont obligatoires")
+          setError("Tous les prénoms des accompagnants sont obligatoires")
           return
         }
       }
 
       // Sauvegarder
       startTransition(async () => {
-        const result = await saveFamilyMembers(
-          familyMembers.map(m => ({
+        const result = await saveParticipants({
+          prenom,
+          nom,
+          accompagnants: accompagnants.map(m => ({
             first_name: m.first_name,
             is_minor: m.is_minor
           }))
-        )
+        })
         if (result.error) {
           setError(result.error)
         } else {
@@ -160,24 +164,27 @@ export function OnboardingWizard({
     })
   }
 
-  const addFamilyMember = () => {
-    setFamilyMembers([
-      ...familyMembers,
+  const addAccompagnant = () => {
+    setAccompagnants([
+      ...accompagnants,
       { id: crypto.randomUUID(), first_name: "", is_minor: false }
     ])
   }
 
-  const removeFamilyMember = (id: string) => {
-    if (familyMembers.length > 1) {
-      setFamilyMembers(familyMembers.filter(m => m.id !== id))
-    }
+  const removeAccompagnant = (id: string) => {
+    setAccompagnants(accompagnants.filter(m => m.id !== id))
   }
 
-  const updateFamilyMember = (id: string, updates: Partial<LocalFamilyMember>) => {
-    setFamilyMembers(
-      familyMembers.map(m => m.id === id ? { ...m, ...updates } : m)
+  const updateAccompagnant = (id: string, updates: Partial<LocalFamilyMember>) => {
+    setAccompagnants(
+      accompagnants.map(m => m.id === id ? { ...m, ...updates } : m)
     )
   }
+
+  // Total des participants (utilisateur + accompagnants)
+  const totalParticipants = 1 + accompagnants.length
+  const totalAdultes = 1 + accompagnants.filter(m => !m.is_minor).length
+  const totalMineurs = accompagnants.filter(m => m.is_minor).length
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -344,96 +351,150 @@ export function OnboardingWizard({
               Participants au voyage
             </CardTitle>
             <CardDescription>
-              Indiquez toutes les personnes qui seront présentes
+              Indiquez vos informations et celles des personnes qui vous accompagnent
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            {/* Liste des membres */}
+            {/* Section Vous */}
             <div className="space-y-4">
-              {familyMembers.map((member, index) => (
-                <div
-                  key={member.id}
-                  className="flex items-start gap-3 p-4 rounded-xl bg-muted/50 border"
-                >
-                  <div className="flex-1 space-y-3">
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                        {member.is_minor ? (
-                          <Baby className="w-4 h-4 text-primary" />
-                        ) : (
-                          <User className="w-4 h-4 text-primary" />
-                        )}
-                      </div>
-                      <Input
-                        placeholder="Prénom *"
-                        value={member.first_name}
-                        onChange={(e) => updateFamilyMember(member.id, { first_name: e.target.value })}
-                        className="flex-1 bg-background"
-                      />
-                    </div>
-                    
-                    <div className="flex gap-2 pl-10">
-                      <button
-                        type="button"
-                        onClick={() => updateFamilyMember(member.id, { is_minor: false })}
-                        className={cn(
-                          "flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all",
-                          !member.is_minor
-                            ? "bg-primary text-primary-foreground"
-                            : "bg-background border hover:bg-muted"
-                        )}
-                      >
-                        Majeur
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => updateFamilyMember(member.id, { is_minor: true })}
-                        className={cn(
-                          "flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all",
-                          member.is_minor
-                            ? "bg-secondary text-secondary-foreground"
-                            : "bg-background border hover:bg-muted"
-                        )}
-                      >
-                        Mineur
-                      </button>
-                    </div>
+              <h3 className="font-semibold flex items-center gap-2 text-foreground">
+                <User className="w-4 h-4 text-primary" />
+                Vos informations
+              </h3>
+              <div className="p-4 rounded-xl bg-primary/5 border-2 border-primary/20 space-y-4">
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="prenom">Prénom *</Label>
+                    <Input
+                      id="prenom"
+                      placeholder="Votre prénom"
+                      value={prenom}
+                      onChange={(e) => setPrenom(e.target.value)}
+                      className="bg-background"
+                    />
                   </div>
-
-                  {familyMembers.length > 1 && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="text-muted-foreground hover:text-destructive"
-                      onClick={() => removeFamilyMember(member.id)}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  )}
+                  <div className="space-y-2">
+                    <Label htmlFor="nom">Nom de famille *</Label>
+                    <Input
+                      id="nom"
+                      placeholder="Votre nom"
+                      value={nom}
+                      onChange={(e) => setNom(e.target.value)}
+                      className="bg-background"
+                    />
+                  </div>
                 </div>
-              ))}
+              </div>
             </div>
 
-            {/* Bouton ajouter */}
-            <Button
-              variant="outline"
-              onClick={addFamilyMember}
-              className="w-full border-dashed"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Ajouter une personne
-            </Button>
+            {/* Section Accompagnants */}
+            <div className="space-y-4">
+              <h3 className="font-semibold flex items-center gap-2 text-foreground">
+                <Users className="w-4 h-4 text-secondary" />
+                Accompagnants
+                {accompagnants.length > 0 && (
+                  <Badge variant="secondary" className="ml-2">
+                    {accompagnants.length}
+                  </Badge>
+                )}
+              </h3>
+              
+              {accompagnants.length === 0 ? (
+                <p className="text-sm text-muted-foreground italic">
+                  Vous voyagez seul(e) ? Vous pouvez ajouter des accompagnants ci-dessous.
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {accompagnants.map((member) => (
+                    <div
+                      key={member.id}
+                      className="flex items-start gap-3 p-4 rounded-xl bg-muted/50 border"
+                    >
+                      <div className="flex-1 space-y-3">
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 rounded-full bg-secondary/10 flex items-center justify-center">
+                            {member.is_minor ? (
+                              <Baby className="w-4 h-4 text-secondary" />
+                            ) : (
+                              <User className="w-4 h-4 text-secondary" />
+                            )}
+                          </div>
+                          <Input
+                            placeholder="Prénom *"
+                            value={member.first_name}
+                            onChange={(e) => updateAccompagnant(member.id, { first_name: e.target.value })}
+                            className="flex-1 bg-background"
+                          />
+                        </div>
+                        
+                        <div className="flex gap-2 pl-10">
+                          <button
+                            type="button"
+                            onClick={() => updateAccompagnant(member.id, { is_minor: false })}
+                            className={cn(
+                              "flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all",
+                              !member.is_minor
+                                ? "bg-secondary text-secondary-foreground"
+                                : "bg-background border hover:bg-muted"
+                            )}
+                          >
+                            Majeur
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => updateAccompagnant(member.id, { is_minor: true })}
+                            className={cn(
+                              "flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all",
+                              member.is_minor
+                                ? "bg-amber-500 text-white"
+                                : "bg-background border hover:bg-muted"
+                            )}
+                          >
+                            Mineur
+                          </button>
+                        </div>
+                      </div>
+
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-muted-foreground hover:text-destructive"
+                        onClick={() => removeAccompagnant(member.id)}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Bouton ajouter */}
+              <Button
+                variant="outline"
+                onClick={addAccompagnant}
+                className="w-full border-dashed"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Ajouter un accompagnant
+              </Button>
+            </div>
 
             {/* Stats */}
-            <div className="flex gap-4 text-sm text-muted-foreground">
+            <div className="flex gap-4 text-sm text-muted-foreground p-3 rounded-lg bg-muted/30">
+              <div className="flex items-center gap-1">
+                <Users className="w-4 h-4" />
+                {totalParticipants} participant(s) au total
+              </div>
               <div className="flex items-center gap-1">
                 <User className="w-4 h-4" />
-                {familyMembers.filter(m => !m.is_minor).length} majeur(s)
+                {totalAdultes} adulte(s)
               </div>
-              <div className="flex items-center gap-1">
-                <Baby className="w-4 h-4" />
-                {familyMembers.filter(m => m.is_minor).length} mineur(s)
-              </div>
+              {totalMineurs > 0 && (
+                <div className="flex items-center gap-1">
+                  <Baby className="w-4 h-4" />
+                  {totalMineurs} mineur(s)
+                </div>
+              )}
             </div>
 
             {/* Navigation */}
@@ -515,13 +576,19 @@ export function OnboardingWizard({
             <div className="p-4 rounded-xl bg-muted/50 border space-y-3">
               <h3 className="font-semibold flex items-center gap-2">
                 <Users className="w-4 h-4 text-primary" />
-                Participants ({familyMembers.length})
+                Participants ({totalParticipants})
               </h3>
               <div className="flex flex-wrap gap-2">
-                {familyMembers.map((member) => (
+                {/* Utilisateur principal */}
+                <Badge variant="default" className="py-1.5 px-3">
+                  <User className="w-3 h-3 mr-1" />
+                  {prenom} {nom}
+                </Badge>
+                {/* Accompagnants */}
+                {accompagnants.map((member) => (
                   <Badge
                     key={member.id}
-                    variant={member.is_minor ? "secondary" : "default"}
+                    variant={member.is_minor ? "secondary" : "outline"}
                     className="py-1.5 px-3"
                   >
                     {member.is_minor ? (

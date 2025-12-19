@@ -6,6 +6,8 @@ import { SiteHeader } from "@/components/site-header"
 import { ScrollReveal } from "@/components/scroll-reveal"
 import { Countdown } from "@/components/countdown"
 import { Button } from "@/components/ui/button"
+import { ScrollToTop } from "@/components/scroll-to-top"
+import { CookieConsent } from "@/components/cookie-consent"
 
 export const metadata = {
   title: "Yvonne fête ses 60 ans – Marrakech · 15 janvier 2026",
@@ -36,7 +38,7 @@ export default function Home() {
             muted
             loop
             playsInline
-            className="absolute inset-0 h-full w-full object-cover"
+            className="absolute inset-0 h-full w-full object-cover object-right sm:object-center"
           >
             <source src={HERO_VIDEO} type="video/mp4" />
           </video>
@@ -160,58 +162,83 @@ export default function Home() {
             {/* Message content */}
             <ScrollReveal delayMs={200}>
               <div className="space-y-6 sm:space-y-8">
-                {/* Intro text */}
-                <div className="space-y-4 sm:space-y-6 text-base sm:text-lg leading-relaxed text-foreground/80">
-                  <p className="text-lg sm:text-xl lg:text-2xl font-medium text-foreground">
-                    Le <span className="text-gold-600 font-semibold">15 janvier 2026</span>, je passe le cap des 60 ans et j'aimerais célébrer cet événement avec vous sous le soleil du Maroc !
+                {/* Opening quote decoration */}
+                <div className="text-gold-400/40 text-5xl sm:text-6xl font-serif leading-none -mb-4">"</div>
+                
+                {/* Main invitation text */}
+                <div className="space-y-4 sm:space-y-5">
+                  <p className="text-lg sm:text-xl lg:text-2xl font-medium text-foreground leading-relaxed">
+                    Le <span className="text-gold-600 font-bold">15 janvier 2026</span>, je célèbrerai mes <span className="text-gradient-gold font-bold">60 ans</span> et j'aimerais vivre ce moment unique à vos côtés, sous le soleil du Maroc.
                   </p>
                 </div>
 
-                {/* Info cards */}
+                {/* Info cards with enhanced design */}
                 <div className="grid gap-3 sm:gap-4 grid-cols-2">
-                  <div className="p-4 sm:p-5 rounded-xl sm:rounded-2xl bg-white/80 border border-gold-200/50 shadow-lg backdrop-blur-sm">
-                    <div className="flex items-center gap-2 sm:gap-3 mb-1.5 sm:mb-2">
-                      <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-gold-600" />
+                  <div className="group p-4 sm:p-5 rounded-xl sm:rounded-2xl bg-gradient-to-br from-white to-gold-50/50 border border-gold-200/50 shadow-lg backdrop-blur-sm hover:shadow-xl hover:border-gold-300/60 transition-all duration-300">
+                    <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+                      <div className="p-1.5 sm:p-2 rounded-lg bg-gold-100 group-hover:bg-gold-200 transition-colors">
+                        <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-gold-600" />
+                      </div>
                       <span className="font-semibold text-foreground text-sm sm:text-base">Quand ?</span>
                     </div>
-                    <p className="text-foreground/80 text-sm sm:text-base">12 – 18 janvier 2026</p>
+                    <p className="text-foreground/90 font-medium text-sm sm:text-base">12 – 18 janvier 2026</p>
+                    <p className="text-foreground/60 text-xs sm:text-sm mt-1">7 jours de bonheur</p>
                   </div>
-                  <div className="p-4 sm:p-5 rounded-xl sm:rounded-2xl bg-white/80 border border-oasis-200/50 shadow-lg backdrop-blur-sm">
-                    <div className="flex items-center gap-2 sm:gap-3 mb-1.5 sm:mb-2">
-                      <MapPin className="h-4 w-4 sm:h-5 sm:w-5 text-oasis-600" />
+                  <div className="group p-4 sm:p-5 rounded-xl sm:rounded-2xl bg-gradient-to-br from-white to-oasis-50/50 border border-oasis-200/50 shadow-lg backdrop-blur-sm hover:shadow-xl hover:border-oasis-300/60 transition-all duration-300">
+                    <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+                      <div className="p-1.5 sm:p-2 rounded-lg bg-oasis-100 group-hover:bg-oasis-200 transition-colors">
+                        <MapPin className="h-4 w-4 sm:h-5 sm:w-5 text-oasis-600" />
+                      </div>
                       <span className="font-semibold text-foreground text-sm sm:text-base">Où ?</span>
                     </div>
-                    <p className="text-foreground/80 text-sm sm:text-base">Marrakech</p>
+                    <p className="text-foreground/90 font-medium text-sm sm:text-base">Marrakech</p>
+                    <p className="text-foreground/60 text-xs sm:text-sm mt-1">La ville ocre 🇲🇦</p>
                   </div>
                 </div>
 
-                {/* Activities */}
-                <p className="text-base sm:text-lg text-foreground/80">
-                  Nous partagerons de belles activités ensemble.
-                </p>
+                {/* Activities text with decorative element */}
+                <div className="relative pl-4 sm:pl-5">
+                  <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-gold-400 via-terracotta-400 to-oasis-400 rounded-full" />
+                  <p className="text-base sm:text-lg text-foreground/80 italic leading-relaxed">
+                    De belles activités et de précieux moments de partage nous attendent tout au long du séjour.
+                  </p>
+                </div>
 
-                {/* Warning box */}
-                <div className="p-4 sm:p-5 rounded-xl sm:rounded-2xl bg-gold-100/80 border border-gold-300/50 shadow-md">
-                  <div className="flex items-start gap-2.5 sm:gap-3">
-                    <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-gold-600 mt-0.5 flex-shrink-0" />
+                {/* Warning box with enhanced design */}
+                <div className="relative overflow-hidden p-4 sm:p-5 rounded-xl sm:rounded-2xl bg-gradient-to-br from-amber-50 to-gold-100/80 border border-amber-300/60 shadow-md">
+                  <div className="absolute top-0 right-0 w-20 h-20 bg-amber-200/30 rounded-full blur-2xl" />
+                  <div className="relative flex items-start gap-3 sm:gap-4">
+                    <div className="flex-shrink-0 p-2 sm:p-2.5 rounded-lg sm:rounded-xl bg-amber-200/80">
+                      <svg className="h-4 w-4 sm:h-5 sm:w-5 text-amber-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                      </svg>
+                    </div>
                     <div>
-                      <p className="font-semibold text-gold-900 mb-1 text-sm sm:text-base">Attention</p>
-                      <p className="text-gold-800 text-xs sm:text-sm leading-relaxed">
-                        C'est aussi la période de la CAN, les prix risquent de monter vite ! Réservez dès maintenant vos vols et logements.
+                      <p className="font-bold text-amber-900 mb-1.5 text-sm sm:text-base flex items-center gap-2">
+                        ⚠️ À noter
+                      </p>
+                      <p className="text-amber-800 text-xs sm:text-sm leading-relaxed">
+                        Cette période coïncide avec la <strong>CAN</strong>, les tarifs des vols et des hébergements peuvent augmenter rapidement. <span className="font-semibold">Je vous invite donc à réserver au plus tôt.</span>
                       </p>
                     </div>
                   </div>
                 </div>
 
-                {/* Closing message */}
-                <div className="space-y-3 sm:space-y-4 pt-2 sm:pt-4">
-                  <p className="text-base sm:text-lg text-foreground/80">
-                    Je vous enverrai des suggestions. Votre présence serait mon plus beau cadeau !
-                  </p>
+                {/* Closing message with gift icon */}
+                <div className="space-y-4 sm:space-y-5 pt-3 sm:pt-4">
+                  <div className="flex items-start gap-3 sm:gap-4 p-4 sm:p-5 rounded-xl sm:rounded-2xl bg-gradient-to-r from-rose-50/80 to-pink-50/60 border border-rose-200/40">
+                    <span className="text-2xl sm:text-3xl">🎁</span>
+                    <p className="text-base sm:text-lg text-foreground/90 font-medium leading-relaxed">
+                      Votre présence à mes côtés sera le plus beau des cadeaux.
+                    </p>
+                  </div>
                   
-                  <div className="pt-2 sm:pt-4">
-                    <p className="text-foreground/70 italic text-sm sm:text-base">Avec tout mon amour,</p>
-                    <p className="font-display text-2xl sm:text-3xl font-semibold text-gold-700 mt-1.5 sm:mt-2">Yvonne</p>
+                  <div className="pt-3 sm:pt-5 text-center sm:text-left">
+                    <p className="text-foreground/70 italic text-base sm:text-lg">Avec tout mon amour,</p>
+                    <div className="mt-2 sm:mt-3 flex items-center justify-center sm:justify-start gap-2">
+                      <p className="font-display text-3xl sm:text-4xl font-bold text-gradient-gold">Yvonne</p>
+                      <span className="text-2xl">❤️</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -302,35 +329,49 @@ export default function Home() {
                       <span className="text-muted-foreground text-xs sm:text-sm">Journée découverte</span>
                     </div>
                     
-                    <div className="space-y-3 sm:space-y-4">
+                    <div className="grid gap-3 sm:gap-4 md:grid-cols-2">
                       {/* Jardin Majorelle */}
-                      <div className="flex items-start gap-3 sm:gap-4 p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-oasis-50/50 border border-oasis-100">
-                        <div className="flex-shrink-0 p-2 sm:p-2.5 rounded-lg sm:rounded-xl bg-oasis-500 text-white">
-                          <svg className="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-                          </svg>
+                      <div className="group overflow-hidden rounded-xl sm:rounded-2xl bg-white border border-oasis-100 shadow-sm hover:shadow-lg transition-all duration-300">
+                        <div className="relative aspect-[4/3] overflow-hidden bg-oasis-50">
+                          <Image
+                            src="/jardin.jpg"
+                            alt="Jardin Majorelle"
+                            fill
+                            className="object-contain transition-transform duration-500 group-hover:scale-105"
+                          />
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <h4 className="font-semibold text-foreground text-sm sm:text-base">Visite du Jardin Majorelle</h4>
-                          <p className="text-xs sm:text-sm text-muted-foreground mt-1">Un jardin botanique légendaire aux couleurs éclatantes</p>
-                          <div className="mt-2 inline-flex items-center gap-1 px-2 py-0.5 sm:py-1 rounded-lg bg-oasis-100 text-oasis-700 text-xs sm:text-sm font-medium">
-                            16€ / personne
+                        <div className="p-3 sm:p-4 bg-gradient-to-b from-oasis-50/50 to-white">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-semibold text-foreground text-sm sm:text-base">Visite du Jardin Majorelle</h4>
+                              <p className="text-xs sm:text-sm text-muted-foreground mt-1">Un jardin botanique légendaire aux couleurs éclatantes</p>
+                            </div>
+                            <span className="shrink-0 inline-flex items-center px-2 py-1 rounded-lg bg-oasis-500 text-white text-xs font-medium">
+                              16€
+                            </span>
                           </div>
                         </div>
                       </div>
 
                       {/* Palais de la Bahia */}
-                      <div className="flex items-start gap-3 sm:gap-4 p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-gold-50/50 border border-gold-100">
-                        <div className="flex-shrink-0 p-2 sm:p-2.5 rounded-lg sm:rounded-xl bg-gold-500 text-white">
-                          <svg className="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                          </svg>
+                      <div className="group overflow-hidden rounded-xl sm:rounded-2xl bg-white border border-gold-100 shadow-sm hover:shadow-lg transition-all duration-300">
+                        <div className="relative aspect-[4/3] overflow-hidden bg-gold-50">
+                          <Image
+                            src="/palais.jpg"
+                            alt="Palais de la Bahia"
+                            fill
+                            className="object-contain transition-transform duration-500 group-hover:scale-105"
+                          />
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <h4 className="font-semibold text-foreground text-sm sm:text-base">Visite du Palais de la Bahia</h4>
-                          <p className="text-xs sm:text-sm text-muted-foreground mt-1">Chef-d'œuvre de l'architecture marocaine du XIXe siècle</p>
-                          <div className="mt-2 inline-flex items-center gap-1 px-2 py-0.5 sm:py-1 rounded-lg bg-gold-100 text-gold-700 text-xs sm:text-sm font-medium">
-                            13€ / personne
+                        <div className="p-3 sm:p-4 bg-gradient-to-b from-gold-50/50 to-white">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-semibold text-foreground text-sm sm:text-base">Visite du Palais de la Bahia</h4>
+                              <p className="text-xs sm:text-sm text-muted-foreground mt-1">Chef-d'œuvre de l'architecture marocaine du XIXe siècle</p>
+                            </div>
+                            <span className="shrink-0 inline-flex items-center px-2 py-1 rounded-lg bg-gold-500 text-white text-xs font-medium">
+                              13€
+                            </span>
                           </div>
                         </div>
                       </div>
@@ -354,24 +395,26 @@ export default function Home() {
                       <span className="text-muted-foreground text-xs sm:text-sm">Excursion nature</span>
                     </div>
                     
-                    <div className="flex items-start gap-3 sm:gap-4 p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-terracotta-50/50 border border-terracotta-100">
-                      <div className="flex-shrink-0 p-2 sm:p-2.5 rounded-lg sm:rounded-xl bg-terracotta-500 text-white">
-                        <svg className="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                        </svg>
+                    <div className="group overflow-hidden rounded-xl sm:rounded-2xl bg-white border border-terracotta-100 shadow-sm hover:shadow-lg transition-all duration-300">
+                      <div className="relative aspect-[16/9] overflow-hidden bg-terracotta-50">
+                        <Image
+                          src="/ourika.jpg"
+                          alt="Vallée de l'Ourika"
+                          fill
+                          className="object-contain transition-transform duration-500 group-hover:scale-105"
+                        />
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-semibold text-foreground text-sm sm:text-base">Visite de la Vallée de l'Ourika</h4>
-                        <p className="text-xs sm:text-sm text-muted-foreground mt-1">Escapade dans les montagnes de l'Atlas, cascades et villages berbères</p>
-                        <div className="mt-2 sm:mt-3 flex flex-wrap gap-2">
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 sm:py-1 rounded-lg bg-terracotta-100 text-terracotta-700 text-xs sm:text-sm font-medium">
-                            24€ / personne
+                      <div className="p-3 sm:p-4 bg-gradient-to-b from-terracotta-50/50 to-white">
+                        <div className="flex items-start justify-between gap-2 mb-2">
+                          <h4 className="font-semibold text-foreground text-sm sm:text-base">Visite de la Vallée de l'Ourika</h4>
+                          <span className="shrink-0 inline-flex items-center px-2 py-1 rounded-lg bg-terracotta-500 text-white text-xs font-medium">
+                            24€
                           </span>
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 sm:py-1 rounded-lg bg-oasis-100 text-oasis-700 text-xs sm:text-sm">
-                            <Users className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-                            Groupe 15 pers.
-                          </span>
+                        </div>
+                        <p className="text-xs sm:text-sm text-muted-foreground">Escapade dans les montagnes de l'Atlas, cascades et villages berbères</p>
+                        <div className="mt-2 inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-oasis-100 text-oasis-700 text-xs">
+                          <Users className="h-3 w-3" />
+                          Groupe 15 pers.
                         </div>
                       </div>
                     </div>
@@ -398,42 +441,53 @@ export default function Home() {
                       <span className="text-gold-700 font-semibold text-sm sm:text-base">LE JOUR J !</span>
                     </div>
                     
-                    <div className="p-4 sm:p-5 rounded-xl sm:rounded-2xl bg-white/70 border border-gold-200 backdrop-blur-sm">
-                      <div className="flex items-start gap-3 sm:gap-4">
-                        <div className="flex-shrink-0 p-2.5 sm:p-3 rounded-lg sm:rounded-xl bg-gradient-to-br from-gold-500 to-terracotta-500 text-white shadow-lg">
-                          <Sparkles className="h-5 w-5 sm:h-6 sm:w-6" />
+                    <div className="overflow-hidden rounded-xl sm:rounded-2xl bg-white border border-gold-200 shadow-lg">
+                      {/* Layout horizontal sur desktop */}
+                      <div className="flex flex-col md:flex-row">
+                        {/* Photo du restaurant */}
+                        <div className="relative md:w-2/5 aspect-[4/3] md:aspect-auto overflow-hidden bg-gold-100">
+                          <Image
+                            src="/resto.jpg"
+                            alt="Restaurant Comptoir Darna"
+                            fill
+                            className="object-contain"
+                          />
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <h4 className="font-display text-lg sm:text-xl font-bold text-foreground">
+                        
+                        {/* Contenu */}
+                        <div className="flex-1 p-4 sm:p-5 bg-gradient-to-br from-gold-50 to-white">
+                          <h4 className="font-display text-lg sm:text-xl font-bold text-foreground mb-2">
                             Nouvelle bougie, nouvelle étape ! 🎂
                           </h4>
-                          <p className="text-gold-800 mt-1.5 sm:mt-2 italic text-sm sm:text-base">
+                          <p className="text-gold-700 italic text-sm sm:text-base mb-3">
                             Guidée et portée par la grâce de Dieu
                           </p>
-                          <div className="mt-3 sm:mt-4 p-3 sm:p-4 rounded-lg sm:rounded-xl bg-gold-100/50 border border-gold-200">
-                            <div className="flex items-center gap-2 text-gold-900 font-semibold mb-1.5 sm:mb-2 text-sm sm:text-base">
-                              <MapPin className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                          
+                          <div className="p-3 rounded-xl bg-gold-100/70 border border-gold-200">
+                            <div className="flex items-center gap-2 text-gold-900 font-semibold mb-1 text-sm">
+                              <MapPin className="h-3.5 w-3.5" />
                               Restaurant Comptoir Darna
                             </div>
-                            <div className="flex items-center gap-2 text-gold-800 text-sm sm:text-base">
-                              <span className="text-base sm:text-lg">🕕</span>
+                            <div className="flex items-center gap-2 text-gold-800 text-sm">
+                              <span>🕕</span>
                               <span className="font-medium">Rendez-vous à 18h00</span>
                             </div>
-                            <p className="mt-1.5 sm:mt-2 text-gold-700 text-xs sm:text-sm">
+                            <p className="mt-1 text-gold-700 text-xs">
                               Pour un moment dînatoire inoubliable
                             </p>
                           </div>
-                          <div className="mt-3 sm:mt-4 flex flex-wrap gap-1.5 sm:gap-2">
-                            <span className="text-xl sm:text-2xl">🍾</span>
-                            <span className="text-xl sm:text-2xl">🥳</span>
-                            <span className="text-xl sm:text-2xl">❤️</span>
-                            <span className="text-xl sm:text-2xl">🧡</span>
-                            <span className="text-xl sm:text-2xl">💛</span>
-                            <span className="text-xl sm:text-2xl">💚</span>
-                            <span className="text-xl sm:text-2xl">💙</span>
-                            <span className="text-xl sm:text-2xl">💜</span>
+                          
+                          <div className="mt-3 flex flex-wrap gap-1.5">
+                            <span className="text-lg">🍾</span>
+                            <span className="text-lg">🥳</span>
+                            <span className="text-lg">❤️</span>
+                            <span className="text-lg">🧡</span>
+                            <span className="text-lg">💛</span>
+                            <span className="text-lg">💚</span>
+                            <span className="text-lg">💙</span>
+                            <span className="text-lg">💜</span>
                           </div>
-                          <p className="mt-2 sm:mt-3 text-base sm:text-lg font-bold text-gold-700">ONE LIFE ❤️</p>
+                          <p className="mt-2 text-sm sm:text-base font-bold text-gold-700">ONE LIFE ❤️</p>
                         </div>
                       </div>
                     </div>
@@ -456,13 +510,16 @@ export default function Home() {
                       <span className="text-muted-foreground text-xs sm:text-sm">Shopping & découverte</span>
                     </div>
                     
-                    <div className="flex items-start gap-3 sm:gap-4 p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-terracotta-50/50 border border-terracotta-100">
-                      <div className="flex-shrink-0 p-2 sm:p-2.5 rounded-lg sm:rounded-xl bg-terracotta-500 text-white">
-                        <svg className="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                        </svg>
+                    <div className="group overflow-hidden rounded-xl sm:rounded-2xl bg-white border border-terracotta-100 shadow-sm hover:shadow-lg transition-all duration-300">
+                      <div className="relative aspect-[16/9] overflow-hidden bg-terracotta-50">
+                        <Image
+                          src="/Place.jpg"
+                          alt="Place Jemaa el-Fna"
+                          fill
+                          className="object-contain transition-transform duration-500 group-hover:scale-105"
+                        />
                       </div>
-                      <div className="flex-1 min-w-0">
+                      <div className="p-3 sm:p-4 bg-gradient-to-b from-terracotta-50/50 to-white">
                         <h4 className="font-semibold text-foreground text-sm sm:text-base">Place Jemaa el-Fna & Souks</h4>
                         <p className="text-xs sm:text-sm text-muted-foreground mt-1">Plongez dans l'effervescence de la place mythique et perdez-vous dans les souks colorés</p>
                       </div>
@@ -486,13 +543,16 @@ export default function Home() {
                       <span className="text-muted-foreground text-xs sm:text-sm">Bien-être & détente</span>
                     </div>
                     
-                    <div className="flex items-start gap-3 sm:gap-4 p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-oasis-50/50 border border-oasis-100">
-                      <div className="flex-shrink-0 p-2 sm:p-2.5 rounded-lg sm:rounded-xl bg-oasis-500 text-white">
-                        <svg className="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                        </svg>
+                    <div className="group overflow-hidden rounded-xl sm:rounded-2xl bg-white border border-oasis-100 shadow-sm hover:shadow-lg transition-all duration-300">
+                      <div className="relative aspect-[16/9] overflow-hidden bg-oasis-50">
+                        <Image
+                          src="/spa.jpg"
+                          alt="Spa & Hammam"
+                          fill
+                          className="object-contain transition-transform duration-500 group-hover:scale-105"
+                        />
                       </div>
-                      <div className="flex-1 min-w-0">
+                      <div className="p-3 sm:p-4 bg-gradient-to-b from-oasis-50/50 to-white">
                         <h4 className="font-semibold text-foreground text-sm sm:text-base">Détente au Spa & Hammam</h4>
                         <p className="text-xs sm:text-sm text-muted-foreground mt-1">Moment de relaxation dans un hammam traditionnel marocain pour clôturer la semaine en beauté</p>
                       </div>
@@ -933,6 +993,12 @@ export default function Home() {
           </div>
         </div>
       </footer>
+
+      {/* Bouton retour en haut */}
+      <ScrollToTop />
+
+      {/* Bannière de consentement cookies */}
+      <CookieConsent />
     </div>
   )
 }

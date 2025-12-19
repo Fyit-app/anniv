@@ -44,7 +44,6 @@ export default async function OnboardingPage() {
         <OnboardingWizard
           initialProfile={profile}
           initialFamilyMembers={familyMembers}
-          userPrenom={profile?.prenom || user.email?.split("@")[0] || ""}
         />
       </div>
     </div>

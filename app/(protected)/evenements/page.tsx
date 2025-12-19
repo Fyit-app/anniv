@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { getEventsWithDetails, getMyFamilyMembers, getProgrammeEvents } from "./actions"
 import { EventCard } from "./event-card"
@@ -14,6 +15,11 @@ import { Badge } from "@/components/ui/badge"
 export default async function EvenementsPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
+
+  // Protection: rediriger si non connecté
+  if (!user) {
+    redirect("/login")
+  }
 
   // Récupérer tous les événements (custom uniquement pour la section séparée)
   const allEvents = await getEventsWithDetails('all')

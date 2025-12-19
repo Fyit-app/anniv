@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { createClient } from "@/lib/supabase/server"
 import { 
@@ -41,10 +42,15 @@ export default async function GaleriePage() {
     data: { user },
   } = await supabase.auth.getUser()
 
+  // Protection: rediriger si non connecté
+  if (!user) {
+    redirect("/login")
+  }
+
   const { data: myMedia } = await supabase
     .from("photos")
     .select("id,user_id,url,validated,created_at,media_type")
-    .eq("user_id", user!.id)
+    .eq("user_id", user.id)
     .order("created_at", { ascending: false })
 
   const { data: validatedMedia } = await supabase

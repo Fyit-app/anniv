@@ -145,47 +145,88 @@ export function SiteHeader() {
         </div>
       </div>
 
-      {/* Mobile menu */}
+      {/* Mobile menu overlay */}
+      <div 
+        className={cn(
+          "fixed inset-0 z-[60] bg-night-900/70 backdrop-blur-md lg:hidden transition-opacity duration-300",
+          mobileOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+        )}
+        onClick={() => setMobileOpen(false)}
+      />
+
+      {/* Mobile menu panel */}
       <div
         className={cn(
-          "fixed inset-0 z-40 bg-cream/98 backdrop-blur-xl transition-all duration-500 lg:hidden",
-          mobileOpen
-            ? "opacity-100 pointer-events-auto"
-            : "opacity-0 pointer-events-none"
+          "fixed top-0 right-0 z-[70] h-full w-full max-w-sm bg-cream shadow-2xl lg:hidden",
+          "transform transition-transform duration-300 ease-out",
+          mobileOpen ? "translate-x-0" : "translate-x-full"
         )}
       >
-        <nav className="flex h-full flex-col items-center justify-center gap-6 sm:gap-8 px-6">
-          {[
-            { href: "/#countdown", label: "Compte à rebours" },
-            { href: "/#programme", label: "Programme" },
-            { href: "/#infos", label: "Infos pratiques" },
-          ].map((item, i) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={() => setMobileOpen(false)}
-              className={cn(
-                "font-display text-2xl sm:text-3xl font-semibold text-foreground transition-all hover:text-gold-600",
-                mobileOpen ? "animate-fade-in-up" : ""
-              )}
-              style={{ animationDelay: `${i * 100}ms` }}
-            >
-              {item.label}
-            </Link>
-          ))}
+        {/* Fond opaque de base */}
+        <div className="absolute inset-0 bg-cream" />
+        {/* Fond décoratif */}
+        <div className="absolute inset-0 pattern-zellige opacity-20" />
+        <div className="absolute top-0 right-0 w-64 h-64 bg-gold-400/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+        <div className="absolute bottom-0 left-0 w-48 h-48 bg-oasis-400/20 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
+
+        {/* Bouton fermer */}
+        <button
+          onClick={() => setMobileOpen(false)}
+          className="absolute top-5 right-5 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-gold-100/80 hover:bg-gold-200 text-gold-700 transition-colors duration-200"
+          aria-label="Fermer le menu"
+        >
+          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+
+        <nav className="relative flex h-full flex-col pt-24 pb-8 px-8">
+          {/* Liens de navigation */}
+          <div className="flex flex-col gap-2">
+            {[
+              { href: "/#countdown", label: "Compte à rebours", icon: "⏱️" },
+              { href: "/#programme", label: "Programme", icon: "📅" },
+              { href: "/#infos", label: "Infos pratiques", icon: "ℹ️" },
+            ].map((item, i) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setMobileOpen(false)}
+                className={cn(
+                  "flex items-center gap-4 p-4 rounded-xl transition-all duration-200",
+                  "text-foreground hover:bg-gold-100/50 hover:text-gold-700",
+                  "border border-transparent hover:border-gold-200"
+                )}
+              >
+                <span className="text-xl">{item.icon}</span>
+                <span className="font-display text-lg font-semibold">{item.label}</span>
+              </Link>
+            ))}
+          </div>
+
+          {/* Séparateur */}
+          <div className="my-6 h-px bg-gradient-to-r from-transparent via-gold-300 to-transparent" />
+
+          {/* CTA Button */}
           <Button
             asChild
             size="lg"
-            className={cn(
-              "mt-4 w-full max-w-xs h-12 sm:h-14 px-8 sm:px-10 bg-gradient-to-r from-gold-500 to-terracotta-500 text-white text-base sm:text-lg shadow-xl shadow-gold-500/25",
-              mobileOpen ? "animate-fade-in-up" : ""
-            )}
-            style={{ animationDelay: "300ms" }}
+            className="w-full h-14 bg-gradient-to-r from-gold-500 to-terracotta-500 hover:from-gold-600 hover:to-terracotta-600 text-white text-base font-semibold shadow-xl shadow-gold-500/25"
           >
             <Link href="/login" onClick={() => setMobileOpen(false)}>
               Accéder à mon espace
             </Link>
           </Button>
+
+          {/* Footer du menu */}
+          <div className="mt-auto pt-8 text-center">
+            <p className="text-sm text-muted-foreground">
+              Yvonne · 60 ans
+            </p>
+            <p className="text-xs text-muted-foreground/60 mt-1">
+              Marrakech · Janvier 2026
+            </p>
+          </div>
         </nav>
       </div>
     </header>

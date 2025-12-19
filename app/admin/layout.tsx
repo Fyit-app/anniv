@@ -1,4 +1,5 @@
 import { requireAdmin } from "@/lib/auth"
+import { AdminLayoutClient } from "./admin-layout-client"
 
 export default async function AdminLayout({
   children,
@@ -6,5 +7,6 @@ export default async function AdminLayout({
   children: React.ReactNode
 }) {
   await requireAdmin()
-  return <>{children}</>
+  
+  return <AdminLayoutClient>{children}</AdminLayoutClient>
 }

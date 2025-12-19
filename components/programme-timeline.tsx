@@ -1,12 +1,44 @@
 "use client"
 
 import { useState, useTransition } from "react"
+import Image from "next/image"
 import { Calendar, MapPin, Plane, Sparkles, Users, Check, Loader2, Minus, Plus, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import type { EventWithDetails } from "@/lib/types"
 import { registerForEvent, unregisterFromEvent, updateRegistrationParticipants } from "@/app/(protected)/evenements/actions"
+
+// Mapping des images pour chaque activité
+const ACTIVITY_IMAGES: Record<string, string> = {
+  "jardin": "/jardin.jpg",
+  "majorelle": "/jardin.jpg",
+  "bahia": "/palais.jpg",
+  "palais": "/palais.jpg",
+  "ourika": "/ourika.jpg",
+  "vallée": "/ourika.jpg",
+  "anniversaire": "/resto.jpg",
+  "comptoir": "/resto.jpg",
+  "darna": "/resto.jpg",
+  "jemaa": "/Place.jpg",
+  "place": "/Place.jpg",
+  "souks": "/Place.jpg",
+  "souk": "/Place.jpg",
+  "spa": "/spa.jpg",
+  "hammam": "/spa.jpg",
+  "détente": "/spa.jpg",
+}
+
+// Fonction pour trouver l'image correspondante à un événement
+function getEventImage(title: string): string | null {
+  const lowerTitle = title.toLowerCase()
+  for (const [keyword, image] of Object.entries(ACTIVITY_IMAGES)) {
+    if (lowerTitle.includes(keyword)) {
+      return image
+    }
+  }
+  return null
+}
 
 interface ProgrammeTimelineProps {
   className?: string
@@ -342,102 +374,125 @@ export function ProgrammeTimeline({
                 {/* Dynamic events from DB */}
                 {events.length > 0 && (
                   <div className="space-y-3 sm:space-y-4">
-                    {events.map((event) => (
-                      <div key={event.id} className={cn(
-                        "p-3 sm:p-4 rounded-xl sm:rounded-2xl",
-                        isJourJ ? "bg-white/70 border border-gold-200 backdrop-blur-sm" : colors.bg,
-                        !isJourJ && colors.border
-                      )}>
-                        <div className="flex items-start gap-3 sm:gap-4">
-                          <div className={cn("flex-shrink-0 p-2 sm:p-2.5 rounded-lg sm:rounded-xl text-white shadow-lg", colors.icon)}>
-                            {isJourJ ? (
-                              <Sparkles className="h-4 w-4 sm:h-5 sm:w-5" />
-                            ) : day === 'samedi' ? (
-                              <svg className="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                              </svg>
-                            ) : (
-                              <MapPin className="h-4 w-4 sm:h-5 sm:w-5" />
-                            )}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h4 className={cn("font-semibold text-foreground text-sm sm:text-base", isJourJ && "font-display text-lg sm:text-xl font-bold")}>
-                              {event.title}
-                            </h4>
-                            
-                            {isJourJ && (
-                              <p className="text-gold-800 mt-1.5 sm:mt-2 italic text-sm sm:text-base">
-                                Guidée et portée par la grâce de Dieu
-                              </p>
-                            )}
-                            
-                            <p className="text-xs sm:text-sm text-muted-foreground mt-1">{event.description}</p>
-                            
-                            {/* Location & Time */}
-                            {event.location && (
-                              <div className={cn("mt-2 sm:mt-3 p-2 sm:p-3 rounded-lg", isJourJ ? "bg-gold-100/50 border border-gold-200" : "bg-white/50")}>
-                                <div className="flex items-center gap-2 text-xs sm:text-sm font-medium">
-                                  <MapPin className="h-3 w-3 sm:h-4 sm:w-4" />
-                                  {event.location}
+                    {events.map((event) => {
+                      const eventImage = getEventImage(event.title)
+                      
+                      return (
+                        <div key={event.id} className={cn(
+                          "overflow-hidden rounded-xl sm:rounded-2xl",
+                          isJourJ ? "bg-white/70 border border-gold-200 backdrop-blur-sm" : colors.bg,
+                          !isJourJ && colors.border
+                        )}>
+                          {/* Image de l'activité */}
+                          {eventImage && (
+                            <div className={cn(
+                              "relative aspect-[16/9] overflow-hidden group",
+                              isJourJ ? "bg-gold-50" : colors.bg.replace('/50', '')
+                            )}>
+                              <Image
+                                src={eventImage}
+                                alt={event.title}
+                                fill
+                                className="object-contain transition-transform duration-500 group-hover:scale-105"
+                              />
+                            </div>
+                          )}
+                          
+                          <div className="p-3 sm:p-4">
+                            <div className="flex items-start gap-3 sm:gap-4">
+                              {!eventImage && (
+                                <div className={cn("flex-shrink-0 p-2 sm:p-2.5 rounded-lg sm:rounded-xl text-white shadow-lg", colors.icon)}>
+                                  {isJourJ ? (
+                                    <Sparkles className="h-4 w-4 sm:h-5 sm:w-5" />
+                                  ) : day === 'samedi' ? (
+                                    <svg className="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                                    </svg>
+                                  ) : (
+                                    <MapPin className="h-4 w-4 sm:h-5 sm:w-5" />
+                                  )}
                                 </div>
+                              )}
+                              <div className="flex-1 min-w-0">
+                                <h4 className={cn("font-semibold text-foreground text-sm sm:text-base", isJourJ && "font-display text-lg sm:text-xl font-bold")}>
+                                  {event.title}
+                                </h4>
+                                
+                                {isJourJ && (
+                                  <p className="text-gold-800 mt-1.5 sm:mt-2 italic text-sm sm:text-base">
+                                    Guidée et portée par la grâce de Dieu
+                                  </p>
+                                )}
+                                
+                                <p className="text-xs sm:text-sm text-muted-foreground mt-1">{event.description}</p>
+                                
+                                {/* Location & Time */}
+                                {event.location && (
+                                  <div className={cn("mt-2 sm:mt-3 p-2 sm:p-3 rounded-lg", isJourJ ? "bg-gold-100/50 border border-gold-200" : "bg-white/50")}>
+                                    <div className="flex items-center gap-2 text-xs sm:text-sm font-medium">
+                                      <MapPin className="h-3 w-3 sm:h-4 sm:w-4" />
+                                      {event.location}
+                                    </div>
+                                    {isJourJ && (
+                                      <>
+                                        <div className="flex items-center gap-2 text-sm mt-1">
+                                          <span>🕕</span>
+                                          <span className="font-medium">Rendez-vous à 18h00</span>
+                                        </div>
+                                        <p className="mt-1.5 text-xs text-muted-foreground">
+                                          Pour un moment dînatoire inoubliable
+                                        </p>
+                                      </>
+                                    )}
+                                  </div>
+                                )}
+                                
+                                {/* Price info */}
+                                {event.price_info && (
+                                  <div className={cn("mt-2 inline-flex items-center gap-1 px-2 py-0.5 sm:py-1 rounded-lg text-xs sm:text-sm font-medium", colors.badge)}>
+                                    {event.price_info}
+                                  </div>
+                                )}
+                                
+                                {/* Max participants */}
+                                {event.max_participants && (
+                                  <span className={cn("inline-flex items-center gap-1 px-2 py-0.5 sm:py-1 rounded-lg bg-oasis-100 text-oasis-700 text-xs sm:text-sm", event.price_info ? "ml-2" : "mt-2")}>
+                                    <Users className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+                                    Max {event.max_participants} pers.
+                                  </span>
+                                )}
+
+                                {/* Emojis for Jour J */}
                                 {isJourJ && (
                                   <>
-                                    <div className="flex items-center gap-2 text-sm mt-1">
-                                      <span>🕕</span>
-                                      <span className="font-medium">Rendez-vous à 18h00</span>
+                                    <div className="mt-3 sm:mt-4 flex flex-wrap gap-1.5 sm:gap-2">
+                                      <span className="text-xl sm:text-2xl">🍾</span>
+                                      <span className="text-xl sm:text-2xl">🥳</span>
+                                      <span className="text-xl sm:text-2xl">❤️</span>
+                                      <span className="text-xl sm:text-2xl">🧡</span>
+                                      <span className="text-xl sm:text-2xl">💛</span>
+                                      <span className="text-xl sm:text-2xl">💚</span>
+                                      <span className="text-xl sm:text-2xl">💙</span>
+                                      <span className="text-xl sm:text-2xl">💜</span>
                                     </div>
-                                    <p className="mt-1.5 text-xs text-muted-foreground">
-                                      Pour un moment dînatoire inoubliable
-                                    </p>
+                                    <p className="mt-2 sm:mt-3 text-base sm:text-lg font-bold text-gold-700">ONE LIFE ❤️</p>
                                   </>
                                 )}
-                              </div>
-                            )}
-                            
-                            {/* Price info */}
-                            {event.price_info && (
-                              <div className={cn("mt-2 inline-flex items-center gap-1 px-2 py-0.5 sm:py-1 rounded-lg text-xs sm:text-sm font-medium", colors.badge)}>
-                                {event.price_info}
-                              </div>
-                            )}
-                            
-                            {/* Max participants */}
-                            {event.max_participants && (
-                              <span className="ml-2 inline-flex items-center gap-1 px-2 py-0.5 sm:py-1 rounded-lg bg-oasis-100 text-oasis-700 text-xs sm:text-sm">
-                                <Users className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-                                Max {event.max_participants} pers.
-                              </span>
-                            )}
 
-                            {/* Emojis for Jour J */}
-                            {isJourJ && (
-                              <>
-                                <div className="mt-3 sm:mt-4 flex flex-wrap gap-1.5 sm:gap-2">
-                                  <span className="text-xl sm:text-2xl">🍾</span>
-                                  <span className="text-xl sm:text-2xl">🥳</span>
-                                  <span className="text-xl sm:text-2xl">❤️</span>
-                                  <span className="text-xl sm:text-2xl">🧡</span>
-                                  <span className="text-xl sm:text-2xl">💛</span>
-                                  <span className="text-xl sm:text-2xl">💚</span>
-                                  <span className="text-xl sm:text-2xl">💙</span>
-                                  <span className="text-xl sm:text-2xl">💜</span>
-                                </div>
-                                <p className="mt-2 sm:mt-3 text-base sm:text-lg font-bold text-gold-700">ONE LIFE ❤️</p>
-                              </>
-                            )}
-
-                            {/* Registration */}
-                            {showRegistration && maxParticipants > 0 && (
-                              <ActivityRegistration 
-                                event={event}
-                                maxParticipants={maxParticipants}
-                                colorClass={colors.icon}
-                              />
-                            )}
+                                {/* Registration */}
+                                {showRegistration && maxParticipants > 0 && (
+                                  <ActivityRegistration 
+                                    event={event}
+                                    maxParticipants={maxParticipants}
+                                    colorClass={colors.icon}
+                                  />
+                                )}
+                              </div>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      )
+                    })}
                   </div>
                 )}
               </div>

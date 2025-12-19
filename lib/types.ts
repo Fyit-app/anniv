@@ -7,6 +7,7 @@ export interface Profile {
   nom: string | null
   telephone: string | null
   onboarding_completed: boolean
+  welcome_seen: boolean
   arrival_date: string | null
   departure_date: string | null
   arrival_transport: 'avion' | 'train' | 'voiture' | 'autre' | null

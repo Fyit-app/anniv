@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { redirect } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -30,24 +31,29 @@ export default async function DashboardPage() {
     data: { user },
   } = await supabase.auth.getUser()
 
+  // Rediriger si non connecté (exécution parallèle avec layout)
+  if (!user) {
+    redirect("/login")
+  }
+
   // Récupérer le profil complet
   const { data: profile } = await supabase
     .from("profiles")
     .select("*")
-    .eq("id", user!.id)
+    .eq("id", user.id)
     .single()
 
   // Récupérer les membres de la famille
   const { data: familyMembers } = await supabase
     .from("family_members")
     .select("*")
-    .eq("profile_id", user!.id)
+    .eq("profile_id", user.id)
 
   // Récupérer les inscriptions aux événements
   const { data: registrations } = await supabase
     .from("event_registrations")
     .select("*, events(*)")
-    .eq("profile_id", user!.id)
+    .eq("profile_id", user.id)
 
   // Récupérer le nombre total d'événements
   const { count: totalEvents } = await supabase

@@ -1,26 +1,14 @@
 "use server"
 
-import { createClient } from "@/lib/supabase/server"
+import { redirect } from "next/navigation"
 import { revalidatePath } from "next/cache"
+import { requireAdmin } from "@/lib/auth"
+import { createClient } from "@/lib/supabase/server"
 
 export async function createEvent(formData: FormData) {
+  await requireAdmin()
+  
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-
-  if (!user) {
-    return { error: "Non authentifié" }
-  }
-
-  // Vérifier si admin
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .single()
-
-  if (profile?.role !== "admin") {
-    return { error: "Non autorisé" }
-  }
 
   const title = formData.get("title") as string
   const description = formData.get("description") as string
@@ -55,23 +43,9 @@ export async function createEvent(formData: FormData) {
 }
 
 export async function deleteEvent(eventId: string) {
+  await requireAdmin()
+  
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-
-  if (!user) {
-    return { error: "Non authentifié" }
-  }
-
-  // Vérifier si admin
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .single()
-
-  if (profile?.role !== "admin") {
-    return { error: "Non autorisé" }
-  }
 
   const { error } = await supabase
     .from("events")
@@ -88,3 +62,18 @@ export async function deleteEvent(eventId: string) {
   return { success: true }
 }
 
+export async function deleteEventAction(formData: FormData) {
+  const eventId = String(formData.get("event_id") ?? "").trim()
+
+  if (!eventId) {
+    redirect("/admin/evenements?error=ID%20événement%20manquant")
+  }
+
+  const result = await deleteEvent(eventId)
+
+  if (result.error) {
+    redirect(`/admin/evenements?error=${encodeURIComponent(result.error)}`)
+  }
+
+  redirect("/admin/evenements?deleted=1")
+}

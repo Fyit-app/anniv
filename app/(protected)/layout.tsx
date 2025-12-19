@@ -5,6 +5,8 @@ import { createClient } from "@/lib/supabase/server"
 import { cn } from "@/lib/utils"
 import { signOut } from "@/app/login/actions"
 import { Button } from "@/components/ui/button"
+import { ModalsProvider } from "@/components/modals-provider"
+import { getCurrentProfile, getProgrammeEvents } from "./actions"
 import { 
   Home, 
   Calendar, 
@@ -35,20 +37,22 @@ export default async function ProtectedLayout({
     redirect("/login")
   }
 
-  // Récupérer le profil
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("prenom, role, onboarding_completed")
-    .eq("id", user.id)
-    .single()
+  // Récupérer le profil complet
+  const profile = await getCurrentProfile()
 
   // Si onboarding pas complété, rediriger vers onboarding
   if (!profile?.onboarding_completed) {
     redirect("/onboarding")
   }
 
+  // Récupérer les événements pour le stepper (si nécessaire)
+  const events = !profile.welcome_seen ? await getProgrammeEvents() : []
+
   return (
     <div className="min-h-screen bg-section-warm">
+      {/* Provider pour les modales (Welcome + EventStepper) */}
+      <ModalsProvider profile={profile} events={events} />
+
       {/* Desktop Sidebar */}
       <aside className="fixed left-0 top-0 z-40 hidden h-screen w-64 border-r border-gold-200/30 bg-white/80 backdrop-blur-xl lg:block">
         <div className="flex h-full flex-col">

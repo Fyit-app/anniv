@@ -8,7 +8,22 @@
 
 ## Templates disponibles
 
-### Magic Link (Connexion sans mot de passe)
+### OTP (Code de connexion à 6 chiffres) ⭐ RECOMMANDÉ
+
+**Fichier:** `otp.html`
+
+**À coller dans:** Authentication > Email Templates > Magic Link
+
+**Subject (Objet):**
+```
+🔐 Votre code de connexion - Yvonne 60 ans
+```
+
+**Note importante:** Ce template affiche un code à 6 chiffres au lieu d'un lien. L'utilisateur doit saisir ce code sur la page `/verify`.
+
+---
+
+### Magic Link (Connexion par lien - ANCIEN)
 
 **Fichier:** `magic-link.html`
 
@@ -41,10 +56,25 @@ Ces variables sont remplacées automatiquement par Supabase :
 | Variable | Description |
 |----------|-------------|
 | `{{ .ConfirmationURL }}` | URL de confirmation/connexion |
-| `{{ .Token }}` | Token de confirmation |
+| `{{ .Token }}` | Code OTP à 6 chiffres |
 | `{{ .TokenHash }}` | Hash du token |
 | `{{ .SiteURL }}` | URL de votre site |
 | `{{ .Email }}` | Email de l'utilisateur |
+
+## Configuration pour OTP
+
+Pour que l'authentification OTP fonctionne correctement :
+
+### 1. Configuration Supabase
+
+1. Allez dans **Authentication** > **Providers**
+2. Dans la section **Email**, assurez-vous que "Enable Email provider" est activé
+3. Vérifiez que "Confirm email" est configuré correctement
+
+### 2. Rate Limiting
+
+Par défaut, Supabase limite les envois d'OTP. Vous pouvez ajuster dans :
+- **Authentication** > **Rate Limits**
 
 ## Configuration SMTP (optionnel mais recommandé)
 
@@ -65,10 +95,20 @@ Sender email: noreply@votredomaine.com
 Sender name: Yvonne 60 ans - Marrakech
 ```
 
+## Flux d'authentification OTP
+
+1. L'utilisateur entre son email sur `/login`
+2. Supabase envoie un code OTP à 6 chiffres
+3. L'utilisateur est redirigé vers `/verify`
+4. L'utilisateur saisit le code
+5. Après validation :
+   - Si onboarding non complété → `/onboarding`
+   - Sinon → `/dashboard` (avec WelcomeModal si première connexion)
+
 ## Test
 
 Pour tester vos emails :
-1. Allez sur votre page de connexion
+1. Allez sur `/login`
 2. Entrez une vraie adresse email
-3. Vérifiez que l'email arrive et que le design est correct
-
+3. Vérifiez que l'email arrive avec le code OTP
+4. Saisissez le code sur `/verify`
