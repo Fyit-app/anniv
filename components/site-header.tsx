@@ -2,11 +2,16 @@
 
 import Link from "next/link"
 import { useEffect, useState } from "react"
+import { User, LogIn } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
-export function SiteHeader() {
+interface SiteHeaderProps {
+  isLoggedIn?: boolean
+}
+
+export function SiteHeader({ isLoggedIn = false }: SiteHeaderProps) {
   const [scrolled, setScrolled] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
 
@@ -103,12 +108,28 @@ export function SiteHeader() {
             asChild
             className={cn(
               "hidden sm:inline-flex h-10 sm:h-11 px-4 sm:px-6 text-sm font-medium transition-all duration-300",
-              scrolled
-                ? "bg-gradient-to-r from-gold-500 to-terracotta-500 hover:from-gold-400 hover:to-terracotta-400 text-white shadow-lg shadow-gold-500/25"
-                : "bg-white/15 backdrop-blur-sm border border-gold-300/30 text-white hover:bg-white/25"
+              isLoggedIn
+                ? scrolled
+                  ? "bg-gradient-to-r from-oasis-500 to-oasis-600 hover:from-oasis-400 hover:to-oasis-500 text-white shadow-lg shadow-oasis-500/25"
+                  : "bg-oasis-500/90 backdrop-blur-sm border border-oasis-400/30 text-white hover:bg-oasis-400/90"
+                : scrolled
+                  ? "bg-gradient-to-r from-gold-500 to-terracotta-500 hover:from-gold-400 hover:to-terracotta-400 text-white shadow-lg shadow-gold-500/25"
+                  : "bg-white/15 backdrop-blur-sm border border-gold-300/30 text-white hover:bg-white/25"
             )}
           >
-            <Link href="/login">Espace invité</Link>
+            <Link href={isLoggedIn ? "/dashboard" : "/login"} className="flex items-center gap-2">
+              {isLoggedIn ? (
+                <>
+                  <User className="h-4 w-4" />
+                  Mon espace
+                </>
+              ) : (
+                <>
+                  <LogIn className="h-4 w-4" />
+                  Espace invité
+                </>
+              )}
+            </Link>
           </Button>
 
           {/* Mobile menu button */}
@@ -211,10 +232,25 @@ export function SiteHeader() {
           <Button
             asChild
             size="lg"
-            className="w-full h-14 bg-gradient-to-r from-gold-500 to-terracotta-500 hover:from-gold-600 hover:to-terracotta-600 text-white text-base font-semibold shadow-xl shadow-gold-500/25"
+            className={cn(
+              "w-full h-14 text-white text-base font-semibold shadow-xl",
+              isLoggedIn
+                ? "bg-gradient-to-r from-oasis-500 to-oasis-600 hover:from-oasis-600 hover:to-oasis-700 shadow-oasis-500/25"
+                : "bg-gradient-to-r from-gold-500 to-terracotta-500 hover:from-gold-600 hover:to-terracotta-600 shadow-gold-500/25"
+            )}
           >
-            <Link href="/login" onClick={() => setMobileOpen(false)}>
-              Accéder à mon espace
+            <Link href={isLoggedIn ? "/dashboard" : "/login"} onClick={() => setMobileOpen(false)} className="flex items-center justify-center gap-2">
+              {isLoggedIn ? (
+                <>
+                  <User className="h-5 w-5" />
+                  Mon espace
+                </>
+              ) : (
+                <>
+                  <LogIn className="h-5 w-5" />
+                  Accéder à mon espace
+                </>
+              )}
             </Link>
           </Button>
 

@@ -15,6 +15,7 @@ import {
   Menu,
   X,
   Crown,
+  Settings,
 } from "lucide-react"
 import { useState } from "react"
 
@@ -49,6 +50,11 @@ const navItems = [
     title: "Messages",
     href: "/admin/messages",
     icon: MessageSquare,
+  },
+  {
+    title: "Paramètres",
+    href: "/admin/parametres",
+    icon: Settings,
   },
 ]
 
@@ -160,4 +166,7 @@ export function AdminLayoutClient({
     </div>
   )
 }
+
+
+
 

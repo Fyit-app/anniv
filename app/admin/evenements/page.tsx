@@ -17,6 +17,7 @@ import {
 } from "lucide-react"
 import { EventForm } from "./event-form"
 import { deleteEventAction } from "./actions"
+import { EditEventButton } from "./edit-event-modal"
 
 type SearchParams = {
   error?: string
@@ -220,18 +221,20 @@ export default async function AdminEvenementsPage({
                               </Badge>
                             )}
                           </div>
-                          <form action={deleteEventAction}>
-                            <input type="hidden" name="event_id" value={event.id} />
-                            <Button
-                              type="submit"
-                              size="sm"
-                              variant="outline"
-                              className="text-destructive border-destructive/30 hover:bg-destructive/10"
-                            >
-                              <Trash2 className="w-4 h-4 mr-1" />
-                              Supprimer
-                            </Button>
-                          </form>
+                          <div className="flex items-center gap-2">
+                            <EditEventButton event={event} />
+                            <form action={deleteEventAction}>
+                              <input type="hidden" name="event_id" value={event.id} />
+                              <Button
+                                type="submit"
+                                size="sm"
+                                variant="outline"
+                                className="text-destructive border-destructive/30 hover:bg-destructive/10"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </form>
+                          </div>
                         </div>
                       </div>
 

@@ -8,6 +8,7 @@ import { Countdown } from "@/components/countdown"
 import { Button } from "@/components/ui/button"
 import { ScrollToTop } from "@/components/scroll-to-top"
 import { CookieConsent } from "@/components/cookie-consent"
+import { createClient } from "@/lib/supabase/server"
 
 export const metadata = {
   title: "Yvonne fête ses 60 ans – Marrakech · 15 janvier 2026",
@@ -22,10 +23,14 @@ const IMAGES = {
   marrakechSunset: "/marrakech-sunset.jpg", // Vue panoramique de Marrakech avec la Koutoubia
 }
 
-export default function Home() {
+export default async function Home() {
+  // Vérifier si l'utilisateur est connecté
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  const isLoggedIn = !!user
   return (
     <div className="relative bg-cream">
-      <SiteHeader />
+      <SiteHeader isLoggedIn={isLoggedIn} />
 
       {/* ═══════════════════════════════════════════════════════════════════════
           HERO SECTION
@@ -93,8 +98,8 @@ export default function Home() {
               size="lg"
               className="w-full sm:w-auto h-12 sm:h-14 px-6 sm:px-10 bg-gradient-to-r from-gold-500 to-terracotta-500 hover:from-gold-400 hover:to-terracotta-400 text-white text-base sm:text-lg font-semibold shadow-2xl shadow-gold-500/30 transition-all duration-300 hover:scale-105 hover:shadow-gold-500/40"
             >
-              <Link href="/login">
-                Accéder à mon espace
+              <Link href={isLoggedIn ? "/dashboard" : "/login"}>
+                {isLoggedIn ? "Mon espace invité" : "Accéder à mon espace"}
                 <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
               </Link>
             </Button>
@@ -818,8 +823,8 @@ export default function Home() {
                 size="lg"
                 className="w-full sm:w-auto h-12 sm:h-14 px-6 sm:px-8 bg-white text-night-800 hover:bg-gold-50 font-semibold shadow-xl transition-all duration-300 hover:scale-105"
               >
-                <Link href="/login">
-                  Accéder à l'espace invité
+                <Link href={isLoggedIn ? "/dashboard" : "/login"}>
+                  {isLoggedIn ? "Mon espace invité" : "Accéder à l'espace invité"}
                   <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
                 </Link>
               </Button>
@@ -863,8 +868,8 @@ export default function Home() {
                 size="lg"
                 className="w-full sm:w-auto h-14 sm:h-16 px-8 sm:px-12 bg-white text-night-900 hover:bg-gold-50 text-base sm:text-lg font-semibold shadow-2xl transition-all duration-300 hover:scale-105"
               >
-                <Link href="/login">
-                  Accéder à mon espace invité
+                <Link href={isLoggedIn ? "/dashboard" : "/login"}>
+                  {isLoggedIn ? "Mon espace invité" : "Accéder à mon espace invité"}
                   <ArrowRight className="ml-2 sm:ml-3 h-4 w-4 sm:h-5 sm:w-5" />
                 </Link>
               </Button>
@@ -948,8 +953,8 @@ export default function Home() {
                 size="lg"
                 className="w-full sm:w-auto group h-12 sm:h-14 px-6 sm:px-10 bg-gradient-to-r from-gold-500 to-terracotta-500 hover:from-gold-400 hover:to-terracotta-400 text-white font-semibold shadow-xl shadow-gold-500/25 transition-all duration-300 hover:scale-105 hover:shadow-gold-500/40"
               >
-                <Link href="/login">
-                  Confirmer ma présence
+                <Link href={isLoggedIn ? "/dashboard" : "/login"}>
+                  {isLoggedIn ? "Mon espace invité" : "Confirmer ma présence"}
                   <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5 transition-transform group-hover:translate-x-1" />
                 </Link>
               </Button>
@@ -980,8 +985,8 @@ export default function Home() {
               <Link href="/#infos" className="text-gold-100/50 hover:text-white text-xs sm:text-sm transition-colors">
                 Infos
               </Link>
-              <Link href="/login" className="text-gold-400 hover:text-gold-300 text-xs sm:text-sm font-medium transition-colors">
-                Mon espace
+              <Link href={isLoggedIn ? "/dashboard" : "/login"} className="text-gold-400 hover:text-gold-300 text-xs sm:text-sm font-medium transition-colors">
+                {isLoggedIn ? "Mon espace" : "Se connecter"}
               </Link>
             </div>
           </div>

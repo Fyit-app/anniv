@@ -139,3 +139,6 @@ AS $$
   WHERE event_id = event_uuid;
 $$;
 
+
+
+

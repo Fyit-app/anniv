@@ -11,3 +11,6 @@ CHECK (media_type IN ('image', 'video'));
 
 COMMENT ON COLUMN public.photos.media_type IS 'Type de média: image ou video';
 
+
+
+

@@ -1,26 +1,28 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Textarea } from "@/components/ui/textarea"
 import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 import {
   MessageSquare,
-  Send,
   Trash2,
   Users,
   CheckCircle2,
   AlertCircle,
   Clock,
   Megaphone,
+  Mail,
 } from "lucide-react"
 
-import { createMessage, deleteMessage } from "./actions"
+import { deleteMessage } from "./actions"
+import { MessageForm } from "./message-form"
 
 type SearchParams = {
   error?: string
   created?: string
   deleted?: string
+  emails?: string
+  emailError?: string
 }
 
 type Message = {
@@ -36,7 +38,7 @@ export default async function AdminMessagesPage({
 }: {
   searchParams: Promise<SearchParams>
 }) {
-  const { error, created, deleted } = await searchParams
+  const { error, created, deleted, emails, emailError } = await searchParams
 
   const supabase = await createClient()
   
@@ -45,6 +47,36 @@ export default async function AdminMessagesPage({
     .from("messages")
     .select("*")
     .order("created_at", { ascending: false })
+
+  // Récupérer les profils pour la liste des destinataires
+  const { data: profiles } = await supabase
+    .from("profiles")
+    .select("id, prenom, nom, role")
+    .order("prenom")
+
+  // Récupérer les emails via le client admin
+  let recipients: { id: string; email: string; prenom: string | null; nom: string | null; role: string }[] = []
+  
+  try {
+    const adminClient = createAdminClient()
+    const { data: authData } = await adminClient.auth.admin.listUsers()
+    
+    if (authData?.users && profiles) {
+      const emailMap = new Map(authData.users.map(u => [u.id, u.email]))
+      
+      recipients = profiles
+        .filter(p => emailMap.has(p.id))
+        .map(p => ({
+          id: p.id,
+          email: emailMap.get(p.id) || '',
+          prenom: p.prenom,
+          nom: p.nom,
+          role: p.role,
+        }))
+    }
+  } catch (e) {
+    console.error("Erreur récupération destinataires:", e)
+  }
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-8">
@@ -62,7 +94,15 @@ export default async function AdminMessagesPage({
       {created && (
         <div className="p-4 bg-oasis-50 border border-oasis-200 rounded-xl flex items-center gap-3">
           <CheckCircle2 className="w-5 h-5 text-oasis-600" />
-          <p className="text-oasis-700">Message publié avec succès !</p>
+          <p className="text-oasis-700">
+            Message publié avec succès !
+            {emails && Number(emails) > 0 && (
+              <span className="ml-2 inline-flex items-center gap-1">
+                <Mail className="w-4 h-4" />
+                {emails} email{Number(emails) > 1 ? 's' : ''} envoyé{Number(emails) > 1 ? 's' : ''}
+              </span>
+            )}
+          </p>
         </div>
       )}
       {deleted && (
@@ -75,6 +115,17 @@ export default async function AdminMessagesPage({
         <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-xl flex items-center gap-3">
           <AlertCircle className="w-5 h-5 text-destructive" />
           <p className="text-destructive">{decodeURIComponent(error)}</p>
+        </div>
+      )}
+      {emailError && (
+        <div className="p-4 bg-amber-50 border border-amber-300 rounded-xl">
+          <div className="flex items-center gap-2 mb-2">
+            <AlertCircle className="w-5 h-5 text-amber-600" />
+            <p className="font-medium text-amber-800">Erreur(s) envoi email :</p>
+          </div>
+          <p className="text-sm text-amber-700 font-mono bg-amber-100 p-2 rounded">
+            {decodeURIComponent(emailError)}
+          </p>
         </div>
       )}
 
@@ -91,66 +142,7 @@ export default async function AdminMessagesPage({
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form action={createMessage} className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium" htmlFor="title">
-                  Titre *
-                </label>
-                <Input
-                  id="title"
-                  name="title"
-                  type="text"
-                  placeholder="Ex: Rappel important"
-                  required
-                  className="bg-white"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium" htmlFor="content">
-                  Message *
-                </label>
-                <Textarea
-                  id="content"
-                  name="content"
-                  placeholder="Écrivez votre message ici..."
-                  required
-                  rows={5}
-                  className="bg-white resize-none"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Destinataires</label>
-                <div className="flex gap-3">
-                  <label className="flex items-center gap-2 px-4 py-2 rounded-lg border cursor-pointer hover:bg-muted/50 transition-colors has-[:checked]:bg-gold-50 has-[:checked]:border-gold-300">
-                    <input
-                      type="radio"
-                      name="target"
-                      value="all"
-                      defaultChecked
-                      className="w-4 h-4 text-gold-500"
-                    />
-                    <Users className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-sm">Tous</span>
-                  </label>
-                  <label className="flex items-center gap-2 px-4 py-2 rounded-lg border cursor-pointer hover:bg-muted/50 transition-colors has-[:checked]:bg-oasis-50 has-[:checked]:border-oasis-300">
-                    <input
-                      type="radio"
-                      name="target"
-                      value="invite"
-                      className="w-4 h-4 text-oasis-500"
-                    />
-                    <span className="text-sm">Invités uniquement</span>
-                  </label>
-                </div>
-              </div>
-
-              <Button type="submit" className="w-full bg-gradient-to-r from-gold-500 to-terracotta-500 hover:from-gold-600 hover:to-terracotta-600">
-                <Send className="w-4 h-4 mr-2" />
-                Publier l'annonce
-              </Button>
-            </form>
+            <MessageForm recipients={recipients} />
           </CardContent>
         </Card>
 
@@ -252,6 +244,10 @@ export default async function AdminMessagesPage({
                 Vous pouvez cibler tous les utilisateurs ou uniquement les invités (pas les admins).
                 Les messages les plus récents apparaissent en premier.
               </p>
+              <p className="text-sm text-blue-700 mt-2">
+                <strong>Envoi par email :</strong> Cochez l&apos;option pour envoyer également le message 
+                par email à tous les destinataires sélectionnés.
+              </p>
             </div>
           </div>
         </CardContent>
@@ -259,4 +255,7 @@ export default async function AdminMessagesPage({
     </div>
   )
 }
+
+
+
 

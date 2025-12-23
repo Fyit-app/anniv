@@ -22,7 +22,8 @@ import {
   Sparkles,
   CheckCircle2,
   Clock,
-  Heart
+  Heart,
+  Megaphone
 } from "lucide-react"
 
 export default async function DashboardPage() {
@@ -64,6 +65,21 @@ export default async function DashboardPage() {
   const programmeEvents = await getProgrammeEvents()
   const familyMembersData = await getMyFamilyMembers()
   const maxParticipants = familyMembersData.length || 1
+
+  // Récupérer les messages/annonces
+  // Les invités voient les messages ciblés 'all' ou 'invite'
+  // Les admins voient tous les messages
+  const isAdmin = profile?.role === 'admin'
+  const { data: messages } = await supabase
+    .from("messages")
+    .select("*")
+    .order("created_at", { ascending: false })
+    .limit(5)
+  
+  // Filtrer les messages selon le rôle
+  const visibleMessages = messages?.filter(msg => 
+    isAdmin || msg.target === 'all' || (msg.target === 'invite' && !isAdmin)
+  ) || []
 
   // Calculer le pourcentage de complétion du profil
   const completionItems = [
@@ -178,6 +194,66 @@ export default async function DashboardPage() {
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Link>
                 </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Annonces / Messages */}
+          {visibleMessages.length > 0 && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <Megaphone className="h-5 w-5 text-terracotta-600" />
+                <h2 className="font-display text-lg font-semibold text-foreground">Annonces</h2>
+                <Badge variant="secondary" className="bg-terracotta-100 text-terracotta-700">
+                  {visibleMessages.length}
+                </Badge>
+              </div>
+              <div className="space-y-3">
+                {visibleMessages.map((message) => {
+                  const createdAt = new Date(message.created_at)
+                  const isRecent = Date.now() - createdAt.getTime() < 24 * 60 * 60 * 1000
+
+                  return (
+                    <div
+                      key={message.id}
+                      className={`p-4 sm:p-5 rounded-2xl border transition-all ${
+                        isRecent 
+                          ? 'bg-gradient-to-r from-terracotta-50 to-gold-50 border-terracotta-200 shadow-md' 
+                          : 'bg-white border-gold-100/50 shadow-sm'
+                      }`}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className={`flex-shrink-0 p-2 rounded-xl ${
+                          isRecent ? 'bg-terracotta-100' : 'bg-gold-100'
+                        }`}>
+                          <Megaphone className={`h-4 w-4 ${
+                            isRecent ? 'text-terracotta-600' : 'text-gold-600'
+                          }`} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h3 className="font-semibold text-foreground">{message.title}</h3>
+                            {isRecent && (
+                              <Badge className="bg-terracotta-500 text-white text-xs">
+                                Nouveau
+                              </Badge>
+                            )}
+                          </div>
+                          <p className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">
+                            {message.content}
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-2">
+                            {createdAt.toLocaleDateString('fr-FR', {
+                              day: 'numeric',
+                              month: 'long',
+                              year: 'numeric',
+                            })}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
               </div>
             </div>
           )}

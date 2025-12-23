@@ -93,3 +93,6 @@ VALUES (
 CREATE INDEX IF NOT EXISTS idx_events_event_type ON public.events(event_type);
 CREATE INDEX IF NOT EXISTS idx_events_programme_day ON public.events(programme_day);
 
+
+
+
