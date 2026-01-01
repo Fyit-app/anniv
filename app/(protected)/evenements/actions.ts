@@ -13,7 +13,18 @@ export async function getEventsWithDetails(eventType?: 'programme' | 'custom' | 
     return []
   }
 
+  // Vérifier si l'utilisateur est admin
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single()
+
+  const isAdmin = profile?.role === 'admin'
+
   // Récupérer les événements (filtrer par type si spécifié)
+  // La RLS filtre déjà les événements non publiés pour les non-admins,
+  // mais on ajoute une double vérification côté code
   let query = supabase
     .from("events")
     .select("*")
@@ -30,6 +41,9 @@ export async function getEventsWithDetails(eventType?: 'programme' | 'custom' | 
     return []
   }
 
+  // Filtrer les événements non publiés pour les non-admins (double vérification)
+  const filteredEvents = isAdmin ? events : events.filter(e => e.published === true)
+
   // Récupérer les inscriptions de l'utilisateur
   const { data: myRegistrations } = await supabase
     .from("event_registrations")
@@ -38,7 +52,7 @@ export async function getEventsWithDetails(eventType?: 'programme' | 'custom' | 
 
   // Pour chaque événement, obtenir le nombre de participants
   const eventsWithDetails: EventWithDetails[] = await Promise.all(
-    events.map(async (event) => {
+    filteredEvents.map(async (event) => {
       // Utiliser la fonction SQL pour compter les participants
       const { data: countData } = await supabase
         .rpc("get_event_participants_count", { event_uuid: event.id })

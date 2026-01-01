@@ -12,15 +12,20 @@ import {
   Clock,
   Megaphone,
   Mail,
+  Send,
+  EyeOff,
+  Eye,
 } from "lucide-react"
 
-import { deleteMessage } from "./actions"
+import { deleteMessage, toggleMessagePublished } from "./actions"
 import { MessageForm } from "./message-form"
 
 type SearchParams = {
   error?: string
   created?: string
   deleted?: string
+  published?: string
+  depublished?: string
   emails?: string
   emailError?: string
 }
@@ -30,6 +35,7 @@ type Message = {
   title: string
   content: string
   target: 'all' | 'invite'
+  published: boolean
   created_at: string
 }
 
@@ -38,7 +44,7 @@ export default async function AdminMessagesPage({
 }: {
   searchParams: Promise<SearchParams>
 }) {
-  const { error, created, deleted, emails, emailError } = await searchParams
+  const { error, created, deleted, published, depublished, emails, emailError } = await searchParams
 
   const supabase = await createClient()
   
@@ -95,14 +101,27 @@ export default async function AdminMessagesPage({
         <div className="p-4 bg-oasis-50 border border-oasis-200 rounded-xl flex items-center gap-3">
           <CheckCircle2 className="w-5 h-5 text-oasis-600" />
           <p className="text-oasis-700">
-            Message publié avec succès !
+            Annonce créée en brouillon.
             {emails && Number(emails) > 0 && (
               <span className="ml-2 inline-flex items-center gap-1">
                 <Mail className="w-4 h-4" />
                 {emails} email{Number(emails) > 1 ? 's' : ''} envoyé{Number(emails) > 1 ? 's' : ''}
               </span>
             )}
+            <span className="ml-2 text-oasis-600">Cliquez sur &quot;Publier&quot; pour la rendre visible.</span>
           </p>
+        </div>
+      )}
+      {published && (
+        <div className="p-4 bg-oasis-50 border border-oasis-200 rounded-xl flex items-center gap-3">
+          <Eye className="w-5 h-5 text-oasis-600" />
+          <p className="text-oasis-700">Annonce publiée ! Elle est maintenant visible par les invités.</p>
+        </div>
+      )}
+      {depublished && (
+        <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl flex items-center gap-3">
+          <EyeOff className="w-5 h-5 text-amber-600" />
+          <p className="text-amber-700">Annonce dépubliée. Elle n&apos;est plus visible par les invités.</p>
         </div>
       )}
       {deleted && (
@@ -151,17 +170,22 @@ export default async function AdminMessagesPage({
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <MessageSquare className="w-5 h-5 text-oasis-500" />
-              Messages publiés
+              Toutes les annonces
             </CardTitle>
             <CardDescription>
-              {messages?.length || 0} message(s) au total
+              {messages?.length || 0} annonce(s) au total
+              {messages && messages.length > 0 && (
+                <span className="ml-2">
+                  ({messages.filter((m: Message) => m.published).length} publiée(s), {messages.filter((m: Message) => !m.published).length} brouillon(s))
+                </span>
+              )}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {(!messages || messages.length === 0) ? (
               <div className="text-center py-12 text-muted-foreground">
                 <MessageSquare className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                <p>Aucun message publié</p>
+                <p>Aucune annonce</p>
                 <p className="text-sm">Créez votre première annonce</p>
               </div>
             ) : (
@@ -172,14 +196,29 @@ export default async function AdminMessagesPage({
                 return (
                   <div
                     key={message.id}
-                    className="p-4 rounded-xl border bg-white hover:shadow-md transition-shadow"
+                    className={`p-4 rounded-xl border transition-shadow ${
+                      message.published 
+                        ? 'bg-white hover:shadow-md' 
+                        : 'bg-gray-50/50 border-dashed border-gray-300 opacity-80'
+                    }`}
                   >
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-2">
+                        <div className="flex items-center gap-2 mb-2 flex-wrap">
                           <h3 className="font-semibold truncate">{message.title}</h3>
-                          {isRecent && (
+                          {message.published ? (
                             <Badge className="bg-oasis-100 text-oasis-700 border-oasis-200 text-xs">
+                              <Eye className="w-3 h-3 mr-1" />
+                              Publié
+                            </Badge>
+                          ) : (
+                            <Badge className="bg-gray-100 text-gray-600 border-gray-300 text-xs">
+                              <EyeOff className="w-3 h-3 mr-1" />
+                              Brouillon
+                            </Badge>
+                          )}
+                          {isRecent && message.published && (
+                            <Badge className="bg-gold-100 text-gold-700 border-gold-200 text-xs">
                               Nouveau
                             </Badge>
                           )}
@@ -210,17 +249,44 @@ export default async function AdminMessagesPage({
                           </Badge>
                         </div>
                       </div>
-                      <form action={deleteMessage}>
-                        <input type="hidden" name="message_id" value={message.id} />
-                        <Button
-                          type="submit"
-                          size="sm"
-                          variant="outline"
-                          className="text-destructive border-destructive/30 hover:bg-destructive/10"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </form>
+                      <div className="flex items-center gap-2">
+                        <form action={toggleMessagePublished}>
+                          <input type="hidden" name="message_id" value={message.id} />
+                          <input type="hidden" name="current_published" value={String(message.published)} />
+                          <Button
+                            type="submit"
+                            size="sm"
+                            variant="outline"
+                            className={message.published 
+                              ? "text-amber-600 border-amber-300 hover:bg-amber-50" 
+                              : "text-oasis-600 border-oasis-300 hover:bg-oasis-50"
+                            }
+                          >
+                            {message.published ? (
+                              <>
+                                <EyeOff className="w-4 h-4 mr-1" />
+                                Dépublier
+                              </>
+                            ) : (
+                              <>
+                                <Send className="w-4 h-4 mr-1" />
+                                Publier
+                              </>
+                            )}
+                          </Button>
+                        </form>
+                        <form action={deleteMessage}>
+                          <input type="hidden" name="message_id" value={message.id} />
+                          <Button
+                            type="submit"
+                            size="sm"
+                            variant="outline"
+                            className="text-destructive border-destructive/30 hover:bg-destructive/10"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </form>
+                      </div>
                     </div>
                   </div>
                 )
@@ -240,13 +306,17 @@ export default async function AdminMessagesPage({
             <div>
               <h3 className="font-medium text-blue-900">Comment ça marche ?</h3>
               <p className="text-sm text-blue-700 mt-1">
-                Les messages publiés ici seront visibles par les invités sur leur tableau de bord.
-                Vous pouvez cibler tous les utilisateurs ou uniquement les invités (pas les admins).
-                Les messages les plus récents apparaissent en premier.
+                <strong>1. Créez</strong> une annonce - elle sera enregistrée en <strong>brouillon</strong>.
+              </p>
+              <p className="text-sm text-blue-700 mt-1">
+                <strong>2. Publiez</strong> l&apos;annonce quand vous êtes prêt - elle deviendra visible sur le tableau de bord des invités.
+              </p>
+              <p className="text-sm text-blue-700 mt-1">
+                <strong>3. Dépubliez</strong> à tout moment pour la masquer temporairement.
               </p>
               <p className="text-sm text-blue-700 mt-2">
                 <strong>Envoi par email :</strong> Cochez l&apos;option pour envoyer également le message 
-                par email à tous les destinataires sélectionnés.
+                par email aux destinataires sélectionnés (indépendamment de la publication).
               </p>
             </div>
           </div>

@@ -14,3 +14,4 @@ COMMENT ON COLUMN public.photos.media_type IS 'Type de média: image ou video';
 
 
 
+

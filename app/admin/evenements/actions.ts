@@ -137,6 +137,7 @@ export async function createEvent(formData: FormData) {
       max_participants: max_participants ? parseInt(max_participants) : null,
       image_url: image_url || null,
       price_info: price_info || null,
+      published: false,
     })
 
   if (error) {
@@ -232,4 +233,36 @@ export async function updateEvent(eventId: string, formData: FormData) {
   revalidatePath("/evenements")
   revalidatePath("/(protected)/evenements")
   return { success: true }
+}
+
+export async function toggleEventPublished(formData: FormData) {
+  const authCheck = await checkAdmin()
+  if (!authCheck.isAdmin) {
+    redirect("/admin/evenements?error=Non%20autorisé")
+  }
+
+  const eventId = String(formData.get("event_id") ?? "").trim()
+  const currentPublished = formData.get("current_published") === "true"
+
+  if (!eventId) {
+    redirect("/admin/evenements?error=ID%20événement%20manquant")
+  }
+
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from("events")
+    .update({ published: !currentPublished })
+    .eq("id", eventId)
+
+  if (error) {
+    redirect(`/admin/evenements?error=${encodeURIComponent(error.message)}`)
+  }
+
+  revalidatePath("/admin/evenements")
+  revalidatePath("/evenements")
+  revalidatePath("/(protected)/evenements")
+
+  const action = currentPublished ? "depublished" : "published"
+  redirect(`/admin/evenements?${action}=1`)
 }

@@ -10,3 +10,4 @@ COMMENT ON COLUMN public.profiles.welcome_seen IS 'Indique si l''utilisateur a v
 
 
 
+

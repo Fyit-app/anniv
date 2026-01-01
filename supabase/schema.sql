@@ -135,18 +135,19 @@ create table if not exists public.events (
   location text,
   max_participants int,
   image_url text,
+  published boolean not null default false,
   created_at timestamptz not null default now()
 );
 
 alter table public.events enable row level security;
 
--- Tout le monde authentifié peut voir les événements
+-- Les invités voient uniquement les événements publiés, les admins voient tout
 drop policy if exists "events_select_authenticated" on public.events;
 create policy "events_select_authenticated"
 on public.events
 for select
 to authenticated
-using (true);
+using (published = true or public.is_admin());
 
 -- Seuls les admins peuvent créer/modifier/supprimer des événements
 drop policy if exists "events_insert_admin" on public.events;

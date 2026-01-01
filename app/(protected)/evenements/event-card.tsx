@@ -273,3 +273,4 @@ export function EventCard({ event, maxParticipants, delay = 0 }: EventCardProps)
 
 
 
+

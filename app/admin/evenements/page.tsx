@@ -14,14 +14,18 @@ import {
   CheckCircle2,
   AlertCircle,
   Eye,
+  EyeOff,
+  Send,
 } from "lucide-react"
 import { EventForm } from "./event-form"
-import { deleteEventAction } from "./actions"
+import { deleteEventAction, toggleEventPublished } from "./actions"
 import { EditEventButton } from "./edit-event-modal"
 
 type SearchParams = {
   error?: string
   deleted?: string
+  published?: string
+  depublished?: string
 }
 
 export default async function AdminEvenementsPage({
@@ -29,7 +33,7 @@ export default async function AdminEvenementsPage({
 }: {
   searchParams: Promise<SearchParams>
 }) {
-  const { error, deleted } = await searchParams
+  const { error, deleted, published, depublished } = await searchParams
   
   const supabase = await createClient()
 
@@ -106,6 +110,18 @@ export default async function AdminEvenementsPage({
       </div>
 
       {/* Messages de feedback */}
+      {published && (
+        <div className="p-4 bg-oasis-50 border border-oasis-200 rounded-xl flex items-center gap-3">
+          <Eye className="w-5 h-5 text-oasis-600" />
+          <p className="text-oasis-700">Événement publié ! Il est maintenant visible par les invités.</p>
+        </div>
+      )}
+      {depublished && (
+        <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl flex items-center gap-3">
+          <EyeOff className="w-5 h-5 text-amber-600" />
+          <p className="text-amber-700">Événement dépublié. Il n&apos;est plus visible par les invités.</p>
+        </div>
+      )}
       {deleted && (
         <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl flex items-center gap-3">
           <Trash2 className="w-5 h-5 text-amber-600" />
@@ -147,6 +163,11 @@ export default async function AdminEvenementsPage({
               </CardTitle>
               <CardDescription>
                 {upcomingEvents.length} événement(s) programmé(s)
+                {upcomingEvents.length > 0 && (
+                  <span className="ml-2">
+                    ({upcomingEvents.filter(e => e.published).length} publié(s), {upcomingEvents.filter(e => !e.published).length} brouillon(s))
+                  </span>
+                )}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -163,27 +184,49 @@ export default async function AdminEvenementsPage({
                     (eventDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
                   )
                   const isFull = event.max_participants && event.participants_count >= event.max_participants
+                  const isDraft = !event.published
 
                   return (
                     <div
                       key={event.id}
-                      className="p-4 rounded-xl border bg-white hover:shadow-md transition-shadow"
+                      className={`p-4 rounded-xl border transition-shadow ${
+                        isDraft 
+                          ? 'bg-gray-50/50 border-dashed border-gray-300 opacity-80' 
+                          : 'bg-white hover:shadow-md'
+                      }`}
                     >
                       <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
                         <div className="flex gap-4">
                           {/* Date */}
-                          <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-gold-100 to-terracotta-100 flex flex-col items-center justify-center flex-shrink-0">
-                            <span className="text-xs font-medium text-gold-600">
+                          <div className={`w-16 h-16 rounded-xl flex flex-col items-center justify-center flex-shrink-0 ${
+                            isDraft 
+                              ? 'bg-gray-100' 
+                              : 'bg-gradient-to-br from-gold-100 to-terracotta-100'
+                          }`}>
+                            <span className={`text-xs font-medium ${isDraft ? 'text-gray-500' : 'text-gold-600'}`}>
                               {eventDate.toLocaleDateString("fr-FR", { month: "short" })}
                             </span>
-                            <span className="text-2xl font-bold text-gold-800">
+                            <span className={`text-2xl font-bold ${isDraft ? 'text-gray-600' : 'text-gold-800'}`}>
                               {eventDate.getDate()}
                             </span>
                           </div>
 
                           {/* Infos */}
                           <div className="flex-1 min-w-0">
-                            <h3 className="font-semibold text-lg">{event.title}</h3>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <h3 className="font-semibold text-lg">{event.title}</h3>
+                              {isDraft ? (
+                                <Badge className="bg-gray-100 text-gray-600 border-gray-300 text-xs">
+                                  <EyeOff className="w-3 h-3 mr-1" />
+                                  Brouillon
+                                </Badge>
+                              ) : (
+                                <Badge className="bg-oasis-100 text-oasis-700 border-oasis-200 text-xs">
+                                  <Eye className="w-3 h-3 mr-1" />
+                                  Publié
+                                </Badge>
+                              )}
+                            </div>
                             {event.description && (
                               <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
                                 {event.description}
@@ -222,6 +265,31 @@ export default async function AdminEvenementsPage({
                             )}
                           </div>
                           <div className="flex items-center gap-2">
+                            <form action={toggleEventPublished}>
+                              <input type="hidden" name="event_id" value={event.id} />
+                              <input type="hidden" name="current_published" value={String(event.published)} />
+                              <Button
+                                type="submit"
+                                size="sm"
+                                variant="outline"
+                                className={isDraft 
+                                  ? "text-oasis-600 border-oasis-300 hover:bg-oasis-50" 
+                                  : "text-amber-600 border-amber-300 hover:bg-amber-50"
+                                }
+                              >
+                                {isDraft ? (
+                                  <>
+                                    <Send className="w-4 h-4 mr-1" />
+                                    Publier
+                                  </>
+                                ) : (
+                                  <>
+                                    <EyeOff className="w-4 h-4 mr-1" />
+                                    Dépublier
+                                  </>
+                                )}
+                              </Button>
+                            </form>
                             <EditEventButton event={event} />
                             <form action={deleteEventAction}>
                               <input type="hidden" name="event_id" value={event.id} />

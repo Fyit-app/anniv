@@ -23,7 +23,8 @@ import {
   CheckCircle2,
   Clock,
   Heart,
-  Megaphone
+  Megaphone,
+  EyeOff
 } from "lucide-react"
 
 export default async function DashboardPage() {
@@ -67,8 +68,8 @@ export default async function DashboardPage() {
   const maxParticipants = familyMembersData.length || 1
 
   // Récupérer les messages/annonces
-  // Les invités voient les messages ciblés 'all' ou 'invite'
-  // Les admins voient tous les messages
+  // Les invités voient les messages publiés ciblés 'all' ou 'invite'
+  // Les admins voient tous les messages (publiés et brouillons)
   const isAdmin = profile?.role === 'admin'
   const { data: messages } = await supabase
     .from("messages")
@@ -76,10 +77,14 @@ export default async function DashboardPage() {
     .order("created_at", { ascending: false })
     .limit(5)
   
-  // Filtrer les messages selon le rôle
-  const visibleMessages = messages?.filter(msg => 
-    isAdmin || msg.target === 'all' || (msg.target === 'invite' && !isAdmin)
-  ) || []
+  // Filtrer les messages selon le rôle et le statut de publication
+  const visibleMessages = messages?.filter(msg => {
+    // Les admins voient tous les messages
+    if (isAdmin) return true
+    // Les invités ne voient que les messages publiés avec le bon ciblage
+    if (!msg.published) return false
+    return msg.target === 'all' || msg.target === 'invite'
+  }) || []
 
   // Calculer le pourcentage de complétion du profil
   const completionItems = [
@@ -212,28 +217,40 @@ export default async function DashboardPage() {
                 {visibleMessages.map((message) => {
                   const createdAt = new Date(message.created_at)
                   const isRecent = Date.now() - createdAt.getTime() < 24 * 60 * 60 * 1000
+                  const isDraft = !message.published
 
                   return (
                     <div
                       key={message.id}
                       className={`p-4 sm:p-5 rounded-2xl border transition-all ${
-                        isRecent 
-                          ? 'bg-gradient-to-r from-terracotta-50 to-gold-50 border-terracotta-200 shadow-md' 
-                          : 'bg-white border-gold-100/50 shadow-sm'
+                        isDraft
+                          ? 'bg-gray-50/50 border-dashed border-gray-300 opacity-80'
+                          : isRecent 
+                            ? 'bg-gradient-to-r from-terracotta-50 to-gold-50 border-terracotta-200 shadow-md' 
+                            : 'bg-white border-gold-100/50 shadow-sm'
                       }`}
                     >
                       <div className="flex items-start gap-3">
                         <div className={`flex-shrink-0 p-2 rounded-xl ${
-                          isRecent ? 'bg-terracotta-100' : 'bg-gold-100'
+                          isDraft ? 'bg-gray-100' : isRecent ? 'bg-terracotta-100' : 'bg-gold-100'
                         }`}>
-                          <Megaphone className={`h-4 w-4 ${
-                            isRecent ? 'text-terracotta-600' : 'text-gold-600'
-                          }`} />
+                          {isDraft ? (
+                            <EyeOff className="h-4 w-4 text-gray-500" />
+                          ) : (
+                            <Megaphone className={`h-4 w-4 ${
+                              isRecent ? 'text-terracotta-600' : 'text-gold-600'
+                            }`} />
+                          )}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
+                          <div className="flex items-center gap-2 mb-1 flex-wrap">
                             <h3 className="font-semibold text-foreground">{message.title}</h3>
-                            {isRecent && (
+                            {isDraft && isAdmin && (
+                              <Badge className="bg-gray-200 text-gray-600 text-xs">
+                                Brouillon
+                              </Badge>
+                            )}
+                            {!isDraft && isRecent && (
                               <Badge className="bg-terracotta-500 text-white text-xs">
                                 Nouveau
                               </Badge>

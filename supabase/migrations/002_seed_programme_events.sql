@@ -96,3 +96,4 @@ CREATE INDEX IF NOT EXISTS idx_events_programme_day ON public.events(programme_d
 
 
 
+

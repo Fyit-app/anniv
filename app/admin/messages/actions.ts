@@ -24,13 +24,14 @@ export async function createMessage(formData: FormData) {
 
   const supabase = await createClient()
 
-  // Insérer le message dans la base de données
+  // Insérer le message dans la base de données (en brouillon par défaut)
   const { error } = await supabase
     .from("messages")
     .insert({
       title,
       content,
       target,
+      published: false,
     })
 
   if (error) {
@@ -136,6 +137,27 @@ export async function deleteMessage(formData: FormData) {
   redirect("/admin/messages?deleted=1")
 }
 
+export async function toggleMessagePublished(formData: FormData) {
+  await requireAdmin()
 
+  const messageId = String(formData.get("message_id") ?? "").trim()
+  const currentPublished = formData.get("current_published") === "true"
 
+  if (!messageId) {
+    redirect("/admin/messages?error=ID%20message%20manquant")
+  }
 
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from("messages")
+    .update({ published: !currentPublished })
+    .eq("id", messageId)
+
+  if (error) {
+    redirect(`/admin/messages?error=${encodeURIComponent(error.message)}`)
+  }
+
+  const action = currentPublished ? "depublished" : "published"
+  redirect(`/admin/messages?${action}=1`)
+}

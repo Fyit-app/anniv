@@ -8,6 +8,7 @@ import { Countdown } from "@/components/countdown"
 import { Button } from "@/components/ui/button"
 import { ScrollToTop } from "@/components/scroll-to-top"
 import { CookieConsent } from "@/components/cookie-consent"
+import { AnnouncementsBanner } from "@/components/announcements-banner"
 import { createClient } from "@/lib/supabase/server"
 
 export const metadata = {
@@ -28,6 +29,16 @@ export default async function Home() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   const isLoggedIn = !!user
+
+  // Récupérer les annonces publiées (visibles par tous)
+  const { data: announcements } = await supabase
+    .from("messages")
+    .select("id, title, content, created_at, published")
+    .eq("published", true)
+    .in("target", ["all"])
+    .order("created_at", { ascending: false })
+    .limit(5)
+
   return (
     <div className="relative bg-cream">
       <SiteHeader isLoggedIn={isLoggedIn} />
@@ -277,6 +288,18 @@ export default async function Home() {
               </p>
             </div>
           </ScrollReveal>
+
+          {/* Annonces importantes */}
+          {announcements && announcements.length > 0 && (
+            <ScrollReveal>
+              <div className="mb-10 sm:mb-16">
+                <AnnouncementsBanner 
+                  announcements={announcements} 
+                  variant="light"
+                />
+              </div>
+            </ScrollReveal>
+          )}
 
           {/* Timeline */}
           <div className="relative">
